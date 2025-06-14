@@ -1,10 +1,13 @@
 import React from 'react'
-import AuthPages from './pages/login';
+import Home from './pages/home';
+import AuthPages from './pages/StarterPage';
+
 
 const App = () => {
   return (
     <div>
-      <AuthPages />
+      <Home />
+      {/* <AuthPages /> */}
     </div>
   );
 }

@@ -331,7 +331,7 @@ const SignUp = ({
                 onClick={() => setCurrentPage("login")}
                 className={`bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent hover:underline font-medium`}
               >
-                Sign in
+                Log In
               </button>
             </p>
           </div>

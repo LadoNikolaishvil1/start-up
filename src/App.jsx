@@ -1,9 +1,12 @@
-function App() {
+import React from 'react'
+import AuthPages from './pages/login';
+
+const App = () => {
   return (
-    <>
-      <h1>hello world</h1>
-    </>
+    <div>
+      <AuthPages />
+    </div>
   );
 }
 
-export default App;
+export default App

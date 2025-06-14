@@ -1,12 +1,12 @@
 import React, { useState } from "react";
 import { useTheme } from "../hooks/GetTheme";
-// import LogIn from "./LogIn.jsx";
+import Login from "./login";
 import UserSelect from "./UserSellect";
 import SignIn from "./SignIn";
 
 const AuthPages = () => {
   const [currentPage, setCurrentPage] = useState("login");
-  const [userType, setUserType] = useState(""); 
+  const [userType, setUserType] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("purple-blue");
@@ -61,48 +61,37 @@ const AuthPages = () => {
 
       {/* Page Content */}
       <div className="relative z-10">
-        <SignIn colors={colors} />
-        {/* {currentPage === "login" && <LogIn colors={colors} />}
-        {currentPage === "userType" && <UserSelect colors={colors} />}
-        {currentPage === "signup" && <SignIn colors={colors} />} */}
-      </div>
-
-      {/* Demo Navigation */}
-      <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50">
-        <div
-          className={`flex space-x-2 ${colors.card} ${colors.border} border rounded-lg p-2 shadow-lg`}
-        >
-          <button
-            onClick={() => setCurrentPage("login")}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              currentPage === "login"
-                ? `${colors.primarySolid} text-white`
-                : `${colors.textSecondary} hover:${colors.text}`
-            }`}
-          >
-            Login
-          </button>
-          <button
-            onClick={() => setCurrentPage("userType")}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              currentPage === "userType"
-                ? `${colors.primarySolid} text-white`
-                : `${colors.textSecondary} hover:${colors.text}`
-            }`}
-          >
-            User Type
-          </button>
-          <button
-            onClick={() => setCurrentPage("signup")}
-            className={`px-3 py-1 rounded text-sm transition-colors ${
-              currentPage === "signup"
-                ? `${colors.primarySolid} text-white`
-                : `${colors.textSecondary} hover:${colors.text}`
-            }`}
-          >
-            Signup
-          </button>
-        </div>
+        {currentPage === "login" && (
+          <Login
+            colors={colors}
+            setCurrentPage={setCurrentPage}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+          />
+        )}
+        {currentPage === "userType" && (
+          <UserSelect
+            colors={colors}
+            userType={userType}
+            setUserType={setUserType}
+            setCurrentPage={setCurrentPage}
+          />
+        )}
+        {currentPage === "signup" && (
+          <SignIn
+            colors={colors}
+            userType={userType}
+            setCurrentPage={setCurrentPage}
+            formData={formData}
+            handleInputChange={handleInputChange}
+            showPassword={showPassword}
+            setShowPassword={setShowPassword}
+            showConfirmPassword={showConfirmPassword}
+            setShowConfirmPassword={setShowConfirmPassword}
+          />
+        )}
       </div>
     </div>
   );

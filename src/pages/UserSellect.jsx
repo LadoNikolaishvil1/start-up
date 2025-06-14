@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 import {
   Eye,
@@ -18,7 +18,7 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-const UserSelect = ({ colors }) => {
+const UserSelect = ({ colors, userType, setUserType, setCurrentPage }) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-2xl">
@@ -43,10 +43,7 @@ const UserSelect = ({ colors }) => {
               colors.card
             } rounded-2xl p-8 cursor-pointer transition-all duration-300 border-2 ${
               userType === "influencer"
-                ? `${colors.primary
-                    .replace("from-", "border-")
-                    .replace(" to-blue-600", "")
-                    .replace(" to-blue-500", "")} shadow-xl`
+                ? `${colors.primaryBorder} shadow-xl`
                 : `${colors.border} hover:shadow-lg hover:${colors.accent}`
             }`}
           >

@@ -6,8 +6,8 @@ import AuthPages from './pages/StarterPage';
 const App = () => {
   return (
     <div>
-      <Home />
-      {/* <AuthPages /> */}
+      {/* <Home /> */}
+      <AuthPages />
     </div>
   );
 }

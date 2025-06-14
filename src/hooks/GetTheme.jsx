@@ -13,6 +13,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-purple-600",
+      primaryBorder: "border-purple-600",
     },
     dark: {
       primary: "from-purple-500 to-blue-500",
@@ -24,6 +26,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-purple-500",
+      primaryBorder: "border-purple-500",
     },
   },
   "emerald-teal": {
@@ -38,6 +42,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-emerald-600",
+      primaryBorder: "border-emerald-600",
     },
     dark: {
       primary: "from-emerald-500 to-teal-500",
@@ -49,6 +55,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-emerald-500",
+      primaryBorder: "border-emerald-500",
     },
   },
   "rose-orange": {
@@ -63,6 +71,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-rose-500",
+      primaryBorder: "border-rose-500",
     },
     dark: {
       primary: "from-rose-400 to-orange-400",
@@ -74,6 +84,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-rose-400",
+      primaryBorder: "border-rose-400",
     },
   },
   "indigo-cyan": {
@@ -88,6 +100,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-indigo-600",
+      primaryBorder: "border-indigo-600",
     },
     dark: {
       primary: "from-indigo-500 to-cyan-500",
@@ -99,6 +113,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-indigo-500",
+      primaryBorder: "border-indigo-500",
     },
   },
   "amber-red": {
@@ -113,6 +129,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-amber-500",
+      primaryBorder: "border-amber-500",
     },
     dark: {
       primary: "from-amber-400 to-red-400",
@@ -124,6 +142,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-amber-400",
+      primaryBorder: "border-amber-400",
     },
   },
   "violet-pink": {
@@ -138,6 +158,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-violet-600",
+      primaryBorder: "border-violet-600",
     },
     dark: {
       primary: "from-violet-500 to-pink-500",
@@ -149,6 +171,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-violet-500",
+      primaryBorder: "border-violet-500",
     },
   },
   "slate-blue": {
@@ -163,6 +187,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-slate-600",
+      primaryBorder: "border-slate-600",
     },
     dark: {
       primary: "from-slate-500 to-blue-500",
@@ -174,6 +200,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-slate-500",
+      primaryBorder: "border-slate-500",
     },
   },
   "green-blue": {
@@ -188,6 +216,8 @@ const themes = {
       text: "text-gray-900",
       textSecondary: "text-gray-600",
       border: "border-gray-200",
+      borderFocus: "focus:!border-green-600",
+      primaryBorder: "border-green-600",
     },
     dark: {
       primary: "from-green-500 to-blue-500",
@@ -199,6 +229,8 @@ const themes = {
       text: "text-white",
       textSecondary: "text-gray-300",
       border: "border-gray-700",
+      borderFocus: "focus:!border-green-500",
+      primaryBorder: "border-green-500",
     },
   },
 };

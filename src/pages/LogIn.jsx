@@ -18,7 +18,14 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-const Login = ({colors}) => {
+const Login = ({
+  colors,
+  setCurrentPage,
+  formData,
+  handleInputChange,
+  showPassword,
+  setShowPassword,
+}) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md">
@@ -55,7 +62,7 @@ const Login = ({colors}) => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Enter your email"
                 />
               </div>
@@ -77,7 +84,7 @@ const Login = ({colors}) => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -85,7 +92,7 @@ const Login = ({colors}) => {
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text}`}
                 >
-                  {showPassword ? (
+                  {!showPassword ? (
                     <EyeOff className="w-5 h-5" />
                   ) : (
                     <Eye className="w-5 h-5" />
@@ -96,7 +103,7 @@ const Login = ({colors}) => {
 
             {/* Remember & Forgot */}
             <div className="flex items-center justify-between">
-              <label className="flex items-center">
+              <label className="flex items-center cursor-pointer">
                 <input
                   type="checkbox"
                   className={`rounded ${colors.primarySolid} border-gray-300`}
@@ -140,18 +147,14 @@ const Login = ({colors}) => {
                 type="button"
                 className={`flex justify-center items-center px-4 py-2 border ${colors.border} rounded-lg ${colors.card} hover:${colors.accent} transition-colors`}
               >
-                <img
-                  src="https://developers.google.com/identity/images/g-logo.png"
-                  alt="Google"
-                  className="w-5 h-5"
-                />
+                <img src="google.png" alt="Google" className="w-5 h-5" />
                 <span className={`ml-2 text-sm ${colors.text}`}>Google</span>
               </button>
               <button
                 type="button"
                 className={`flex justify-center items-center px-4 py-2 border ${colors.border} rounded-lg ${colors.card} hover:${colors.accent} transition-colors`}
               >
-                <div className="w-5 h-5 bg-blue-600 rounded" />
+                <img src="facebook.png" alt="Facebook" className="w-5 h-5" />
                 <span className={`ml-2 text-sm ${colors.text}`}>Facebook</span>
               </button>
             </div>

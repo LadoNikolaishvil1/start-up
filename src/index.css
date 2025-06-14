@@ -1,1 +1,14 @@
 @import "tailwindcss";
+
+button {
+    cursor: pointer;
+}
+
+*{
+    outline: none;
+    transition: all 0.3s ease ;
+}
+
+input[type="checkbox"] {
+    cursor: pointer;
+}

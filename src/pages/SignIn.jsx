@@ -1,4 +1,4 @@
-import React from 'react'
+import React from "react";
 
 import {
   Eye,
@@ -18,7 +18,17 @@ import {
   MessageCircle,
 } from "lucide-react";
 
-const SignIn = ({ colors }) => {
+const SignIn = ({
+  colors,
+  userType,
+  setCurrentPage,
+  formData,
+  handleInputChange,
+  showPassword,
+  setShowPassword,
+  showConfirmPassword,
+  setShowConfirmPassword,
+}) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md">
@@ -62,7 +72,7 @@ const SignIn = ({ colors }) => {
                       ]
                     }
                     onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                    className={`w-full pl-10 pr-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                     placeholder={
                       userType === "influencer"
                         ? "Enter your full name"
@@ -92,7 +102,7 @@ const SignIn = ({ colors }) => {
                     name="handle"
                     value={formData.handle}
                     onChange={handleInputChange}
-                    className={`w-full pl-8 pr-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                    className={`w-full pl-10 pr-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                     placeholder="your_handle"
                   />
                 </div>
@@ -113,7 +123,7 @@ const SignIn = ({ colors }) => {
                     name="website"
                     value={formData.website}
                     onChange={handleInputChange}
-                    className={`w-full pl-10 pr-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                    className={`w-full pl-10 pr-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                     placeholder="https://your-website.com"
                   />
                 </div>
@@ -136,7 +146,7 @@ const SignIn = ({ colors }) => {
                   name="email"
                   value={formData.email}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full pl-10 pr-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Enter your email"
                 />
               </div>
@@ -158,7 +168,7 @@ const SignIn = ({ colors }) => {
                     ]
                   }
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full px-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                 >
                   <option value="">
                     Select {userType === "influencer" ? "category" : "industry"}
@@ -198,7 +208,7 @@ const SignIn = ({ colors }) => {
                   name="followers"
                   value={formData.followers}
                   onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full px-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="e.g., 25000"
                 />
               </div>
@@ -220,7 +230,7 @@ const SignIn = ({ colors }) => {
                   name="password"
                   value={formData.password}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Create a password"
                 />
                 <button
@@ -228,7 +238,7 @@ const SignIn = ({ colors }) => {
                   onClick={() => setShowPassword(!showPassword)}
                   className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text}`}
                 >
-                  {showPassword ? (
+                  {!showPassword ? (
                     <EyeOff className="w-5 h-5" />
                   ) : (
                     <Eye className="w-5 h-5" />
@@ -253,7 +263,7 @@ const SignIn = ({ colors }) => {
                   name="confirmPassword"
                   value={formData.confirmPassword}
                   onChange={handleInputChange}
-                  className={`w-full pl-10 pr-12 py-3 border ${colors.input} rounded-lg focus:ring-2 focus:ring-opacity-50 transition-colors ${colors.text}`}
+                  className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Confirm your password"
                 />
                 <button
@@ -261,7 +271,7 @@ const SignIn = ({ colors }) => {
                   onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                   className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text}`}
                 >
-                  {showConfirmPassword ? (
+                  {!showConfirmPassword ? (
                     <EyeOff className="w-5 h-5" />
                   ) : (
                     <Eye className="w-5 h-5" />

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 
 import {
   Eye,
@@ -6,19 +6,12 @@ import {
   Mail,
   Lock,
   User,
-  Building2,
-  Users,
   Globe,
-  Camera,
   ArrowRight,
-  Check,
-  AlertCircle,
-  Star,
-  Heart,
-  MessageCircle,
+  ChevronDown,
 } from "lucide-react";
 
-const SignIn = ({
+const SignUp = ({
   colors,
   userType,
   setCurrentPage,
@@ -29,6 +22,7 @@ const SignIn = ({
   showConfirmPassword,
   setShowConfirmPassword,
 }) => {
+  const [isSelectFocused, setIsSelectFocused] = useState(false);
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md">
@@ -153,46 +147,58 @@ const SignIn = ({
             </div>
 
             {/* Category/Industry & Followers */}
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-4 relative">
               <div>
                 <label
                   className={`block text-sm font-medium ${colors.text} mb-2`}
                 >
                   {userType === "influencer" ? "Category" : "Industry"}
                 </label>
-                <select
-                  name={userType === "influencer" ? "category" : "industry"}
-                  value={
-                    formData[
-                      userType === "influencer" ? "category" : "industry"
-                    ]
-                  }
-                  onChange={handleInputChange}
-                  className={`w-full px-4 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
-                >
-                  <option value="">
-                    Select {userType === "influencer" ? "category" : "industry"}
-                  </option>
-                  {userType === "influencer" ? (
-                    <>
-                      <option value="lifestyle">Lifestyle & Fashion</option>
-                      <option value="technology">Technology</option>
-                      <option value="fitness">Fitness & Health</option>
-                      <option value="beauty">Beauty & Cosmetics</option>
-                      <option value="travel">Travel</option>
-                      <option value="food">Food & Cooking</option>
-                    </>
-                  ) : (
-                    <>
-                      <option value="technology">Technology</option>
-                      <option value="beauty">Beauty & Cosmetics</option>
-                      <option value="fitness">Fitness & Sports</option>
-                      <option value="fashion">Fashion & Lifestyle</option>
-                      <option value="food">Food & Beverage</option>
-                      <option value="travel">Travel & Tourism</option>
-                    </>
-                  )}
-                </select>
+
+                <div className="relative">
+                  <select
+                    name={userType === "influencer" ? "category" : "industry"}
+                    value={
+                      formData[
+                        userType === "influencer" ? "category" : "industry"
+                      ]
+                    }
+                    onFocus={() => setIsSelectFocused(true)}
+                    onBlur={() => setIsSelectFocused(false)}
+                    onChange={handleInputChange}
+                    className={`w-full px-4 py-3 pr-12 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text} appearance-none`}
+                  >
+                    <option value="">
+                      Select{" "}
+                      {userType === "influencer" ? "category" : "industry"}
+                    </option>
+                    {userType === "influencer" ? (
+                      <>
+                        <option value="lifestyle">Lifestyle & Fashion</option>
+                        <option value="technology">Technology</option>
+                        <option value="fitness">Fitness & Health</option>
+                        <option value="beauty">Beauty & Cosmetics</option>
+                        <option value="travel">Travel</option>
+                        <option value="food">Food & Cooking</option>
+                      </>
+                    ) : (
+                      <>
+                        <option value="technology">Technology</option>
+                        <option value="beauty">Beauty & Cosmetics</option>
+                        <option value="fitness">Fitness & Sports</option>
+                        <option value="fashion">Fashion & Lifestyle</option>
+                        <option value="food">Food & Beverage</option>
+                        <option value="travel">Travel & Tourism</option>
+                      </>
+                    )}
+                  </select>
+
+                  <ChevronDown
+                    className={`pointer-events-none absolute right-3 top-1/2 transform -translate-y-1/2 transition-transform duration-300 w-5 h-5 ${
+                      colors.textSecondary
+                    } ${isSelectFocused ? "rotate-180" : ""}`}
+                  />
+                </div>
               </div>
             </div>
 
@@ -335,4 +341,4 @@ const SignIn = ({
   );
 };
 
-export default SignIn;
+export default SignUp;

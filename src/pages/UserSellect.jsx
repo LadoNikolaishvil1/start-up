@@ -1,21 +1,8 @@
 import React from "react";
 
 import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  User,
   Building2,
   Users,
-  Globe,
-  Camera,
-  ArrowRight,
-  Check,
-  AlertCircle,
-  Star,
-  Heart,
-  MessageCircle,
 } from "lucide-react";
 
 const UserSelect = ({ colors, userType, setUserType, setCurrentPage }) => {
@@ -151,7 +138,9 @@ const UserSelect = ({ colors, userType, setUserType, setCurrentPage }) => {
         {/* Continue Button */}
         <div className="text-center">
           <button
-            onClick={() => setCurrentPage("signup")}
+            onClick={() => {
+              if (userType) setCurrentPage("signUp");
+            }}
             disabled={!userType}
             className={`px-8 py-3 rounded-lg font-medium transition-all duration-300 ${
               userType

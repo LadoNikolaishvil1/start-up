@@ -5,17 +5,7 @@ import {
   EyeOff,
   Mail,
   Lock,
-  User,
-  Building2,
-  Users,
-  Globe,
-  Camera,
   ArrowRight,
-  Check,
-  AlertCircle,
-  Star,
-  Heart,
-  MessageCircle,
 } from "lucide-react";
 
 const Login = ({

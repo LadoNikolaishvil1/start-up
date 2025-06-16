@@ -1,7 +1,8 @@
 import { Heart } from 'lucide-react';
-import React from 'react'
+import React, { useState } from 'react'
 
 const Card = ({ type, themeColors }) => {
+  const [heartLiked, setHeartLiked] = useState(false);
   return (
     <div
       className={`${themeColors.card} ${themeColors.border} border rounded-xl p-4 shadow-lg transition-all hover:shadow-xl`}
@@ -18,7 +19,12 @@ const Card = ({ type, themeColors }) => {
             </p>
           </div>
         </div>
-        <Heart className={`w-4 h-4 ${themeColors.textSecondary}`} />
+        <Heart
+          className={`w-4 h-4 cursor-pointer fill-transparent ${heartLiked && "fill-red-500!"} ${themeColors.textSecondary}`}
+          onClick={() => {
+            setHeartLiked(!heartLiked);
+          }}
+        />
       </div>
 
       <div className="flex items-center justify-between mb-3">

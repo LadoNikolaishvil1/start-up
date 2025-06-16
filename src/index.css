@@ -6,7 +6,8 @@ button {
 
 *{
     outline: none;
-    transition: all 0.3s ease ;
+    transition: all 0.3s ease;
+    user-select: none;
 }
 
 input[type="checkbox"] {

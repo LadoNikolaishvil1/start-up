@@ -1,9 +1,9 @@
 import React, { useState } from "react";
 import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import { useTheme } from "../hooks/GetTheme";
-import Login from "./login";
-import UserSelect from "./UserSellect";
-import SignUp from "./SignUp";
+import { useTheme } from "../hooks/GetTheme.jsx";
+import Login from "./login.jsx";
+import UserSelect from "./UserSellect.jsx";
+import SignUp from "./SignUp.jsx";
 
 const AuthPages = () => {
   const [userType, setUserType] = useState("");

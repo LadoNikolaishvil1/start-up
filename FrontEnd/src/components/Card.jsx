@@ -59,7 +59,6 @@
 //   );
 // };
 
-
 // export default Card
 
 import { Heart, MapPin, Users } from "lucide-react";
@@ -73,18 +72,23 @@ const Card = ({ themeColors, user }) => {
       className={`${themeColors.card} ${themeColors.border} border rounded-2xl p-6 shadow-lg transition-all hover:shadow-2xl hover:-translate-y-1 backdrop-blur-sm`}
     >
       {/* Header with profile info and heart */}
-      <div className="flex items-start justify-between mb-4">
-        <div className="flex items-center space-x-3">
-          <div className="relative">
+      <div className="flex items-start justify-between mb-4 gap-2">
+        {/* Left section: Avatar + Username + Location */}
+        <div className="flex items-center space-x-3 flex-1 min-w-0">
+          <div className="relative flex-shrink-0">
             <img
-              src={user?.profilePicture || "/default-avatar.png"}
+              src={user?.profilePicture || "https://..."}
               alt="Profile"
               className="w-12 h-12 rounded-full object-cover bg-gray-200 ring-2 ring-white/50"
             />
             <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-400 rounded-full border-2 border-white"></div>
           </div>
-          <div>
-            <h3 className={`font-bold text-lg ${themeColors.text}`}>
+
+          <div className="flex-1 min-w-0">
+            <h3
+              className={`font-bold text-lg truncate ${themeColors.text}`}
+              title={user?.username}
+            >
               {user?.username}
             </h3>
             <p
@@ -96,28 +100,32 @@ const Card = ({ themeColors, user }) => {
           </div>
         </div>
 
-        <Heart
-          className={`w-5 h-5 cursor-pointer transition-all hover:scale-110 ${
-            heartLiked
-              ? "fill-red-500 text-red-500"
-              : `${themeColors.textSecondary} hover:text-red-400`
-          }`}
-          onClick={() => setHeartLiked(!heartLiked)}
-        />
+        {/* Right section: Heart icon */}
+        <div className="flex-shrink-0 pl-2">
+          <Heart
+            className={`w-5 h-5 cursor-pointer transition-all hover:scale-110 ${
+              heartLiked
+                ? "fill-red-500 text-red-500"
+                : `${themeColors.textSecondary} hover:text-red-400`
+            }`}
+            onClick={() => setHeartLiked(!heartLiked)}
+          />
+        </div>
       </div>
 
       {/* Category and followers/company info */}
       <div className="flex items-center justify-between mb-4">
         <span
-          className={`${themeColors.accent} px-3 py-1.5 rounded-full text-xs font-medium`}
+          className={`${themeColors.accent} ${themeColors.text} px-3 py-1.5 rounded-full text-xs font-medium`}
         >
           {user?.category}
         </span>
         {user?.userType === "company" ? (
-          <div className="flex items-center gap-1 text-purple-600 font-semibold text-sm">
-            <div className="w-4 h-4 rounded-full bg-purple-600"></div>
+          <span
+            className={`${themeColors.accent} ${themeColors.text} px-3 py-1.5 rounded-full text-xs font-medium`}
+          >
             Business
-          </div>
+          </span>
         ) : (
           <div className="flex items-center gap-1 text-emerald-600 font-semibold text-sm">
             <Users className="w-4 h-4" />
@@ -135,7 +143,7 @@ const Card = ({ themeColors, user }) => {
       </div>
 
       {/* Interests tags with fixed height and ellipsis */}
-      <div className="flex flex-wrap gap-2 mb-4 min-h-[32px] max-h-[32px] overflow-hidden text-ellipsis">
+      <div className="flex flex-wrap gap-2 mb-4 min-h-[64px] max-h-[64px] overflow-hidden text-ellipsis items-start">
         {user?.interests &&
           user.interests.map((interest, index) => (
             <span

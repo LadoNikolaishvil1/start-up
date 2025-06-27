@@ -6,6 +6,7 @@ const PORT = process.env.PORT || 3000;
 
 const users = [
   {
+    id: 1,
     userType: "influencer",
     username: "travel_with_anna",
     email: "anna.influencer@example.com",
@@ -23,6 +24,7 @@ const users = [
     createdAt: "2025-06-01T10:15:00Z",
   },
   {
+    id: 2,
     userType: "company",
     username: "eco_sips",
     email: "marketing@ecosips.com",
@@ -39,6 +41,7 @@ const users = [
     createdAt: "2025-05-15T08:30:00Z",
   },
   {
+    id: 3,
     userType: "influencer",
     username: "fitness.luke",
     email: "luke.fit@example.com",
@@ -56,6 +59,8 @@ const users = [
     createdAt: "2025-06-10T13:45:00Z",
   },
 ];
+
+app.use(express.json());
 
 app.use(
   cors({
@@ -80,4 +85,10 @@ app.get("/api", (req, res) => {
 
 app.get("/api/users", (req, res) => {
   res.json(users);
+});
+
+app.post("/api/users", (req, res) => {
+  const newUser = req.body;
+  users.push(newUser);
+  res.status(201).json(newUser);
 });

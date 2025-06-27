@@ -1,21 +1,31 @@
 import React from "react";
-
-import {
-  Eye,
-  EyeOff,
-  Mail,
-  Lock,
-  ArrowRight,
-} from "lucide-react";
+import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { joiResolver } from "@hookform/resolvers/joi";
+import { logInSchema } from "../validations/LogIn.validations";
 
 const Login = ({
   colors,
   setCurrentPage,
-  formData,
-  handleInputChange,
   showPassword,
   setShowPassword,
 }) => {
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm({
+    resolver: joiResolver(logInSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
+
+  const onSubmit = (data) => {
+    alert("Login: " + JSON.stringify(data));
+  };
+
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-md">
@@ -35,9 +45,9 @@ const Login = ({
         <div
           className={`${colors.card} rounded-2xl shadow-xl p-8 ${colors.border} border`}
         >
-          <div className="space-y-6">
+          <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
             {/* Email */}
-            <div>
+            <div className="relative">
               <label
                 className={`block text-sm font-medium ${colors.text} mb-2`}
               >
@@ -48,18 +58,21 @@ const Login = ({
                   className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${colors.textSecondary}`}
                 />
                 <input
+                  {...register("email", { required: "Email is required" })}
                   type="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleInputChange}
                   className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Enter your email"
                 />
               </div>
+              {errors.email && (
+                <span className="text-red-500 text-xs absolute top-0 right-0">
+                  {errors.email.message}
+                </span>
+              )}
             </div>
 
             {/* Password */}
-            <div>
+            <div className="relative">
               <label
                 className={`block text-sm font-medium ${colors.text} mb-2`}
               >
@@ -70,10 +83,10 @@ const Login = ({
                   className={`absolute left-3 top-1/2 transform -translate-y-1/2 w-5 h-5 ${colors.textSecondary}`}
                 />
                 <input
+                  {...register("password", {
+                    required: "Password is required",
+                  })}
                   type={showPassword ? "text" : "password"}
-                  name="password"
-                  value={formData.password}
-                  onChange={handleInputChange}
                   className={`w-full pl-10 pr-12 py-3 border-2 ${colors.border} ${colors.borderFocus} rounded-lg transition-colors ${colors.text}`}
                   placeholder="Enter your password"
                 />
@@ -89,6 +102,11 @@ const Login = ({
                   )}
                 </button>
               </div>
+              {errors.password && (
+                <span className="text-red-500 text-xs absolute top-0 right-0">
+                  {errors.password.message}
+                </span>
+              )}
             </div>
 
             {/* Remember & Forgot */}
@@ -161,7 +179,7 @@ const Login = ({
                 </button>
               </p>
             </div>
-          </div>
+          </form>
         </div>
       </div>
     </div>

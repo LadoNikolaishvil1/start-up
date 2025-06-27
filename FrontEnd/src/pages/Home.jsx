@@ -112,7 +112,7 @@ const Home = () => {
       </div>
 
       {/* Main Content */}
-      <div className="px-8 py-8 w-full">
+      <div className="px-8 py-8 w-full max-h-[100vh] overflow-y-scroll">
         <Routes>
           <Route path="/" element={<Navigate to="/home/browse" replace />} />
           <Route path="/browse" element={<Browse themeColors={themeColors} />} />

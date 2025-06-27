@@ -1,14 +1,20 @@
 import React, { useState } from "react";
-import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  Navigate,
+} from "react-router-dom";
 import { useTheme } from "../hooks/GetTheme.jsx";
 import Login from "./login.jsx";
-import UserSelect from "./UserSellect.jsx";
 import SignUp from "./SignUp.jsx";
+import { useLocalStorage } from "usehooks-ts";
 
 const AuthPages = () => {
-  const [userType, setUserType] = useState("");
+
+
+  const [userType, setUserType] = useLocalStorage("userType", "");
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [selectedTheme, setSelectedTheme] = useState("purple-blue");
   const [isDarkMode, setIsDarkMode] = useState(false);
 
@@ -36,7 +42,6 @@ const AuthPages = () => {
   };
 
   const navigate = useNavigate();
-  const location = useLocation();
 
   return (
     <div
@@ -65,13 +70,13 @@ const AuthPages = () => {
       {/* Page Content */}
       <div className="relative z-10">
         <Routes>
-          <Route path="/" element={<Navigate to="/LogIn" replace />} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
           <Route
-            path="/LogIn"
+            path="/login"
             element={
               <Login
                 colors={colors}
-                setCurrentPage={() => navigate("/userSelect")}
+                setCurrentPage={() => navigate("/signup/userselect")}
                 formData={formData}
                 handleInputChange={handleInputChange}
                 showPassword={showPassword}
@@ -80,34 +85,13 @@ const AuthPages = () => {
             }
           />
           <Route
-            path="/UserSelect"
+            path="/signup/*"
             element={
-              <UserSelect
+              <SignUp
                 colors={colors}
                 userType={userType}
                 setUserType={setUserType}
-                setCurrentPage={(page) => navigate(`/${page}`)}
               />
-            }
-          />
-          <Route
-            path="/SignUp"
-            element={
-              userType ? (
-                <SignUp
-                  colors={colors}
-                  userType={userType}
-                  setCurrentPage={() => navigate("/LogIn")}
-                  formData={formData}
-                  handleInputChange={handleInputChange}
-                  showPassword={showPassword}
-                  setShowPassword={setShowPassword}
-                  showConfirmPassword={showConfirmPassword}
-                  setShowConfirmPassword={setShowConfirmPassword}
-                />
-              ) : (
-                <Navigate to="/UserSelect" replace />
-              )
             }
           />
         </Routes>

@@ -12,18 +12,6 @@ const UserSelect = ({ colors, userType, setUserType, setCurrentPage }) => {
   return (
     <div className="flex items-center justify-center min-h-screen p-4">
       <div className="w-full max-w-2xl">
-        {/* Header */}
-        <div className="text-center mb-8">
-          <h1
-            className={`text-4xl font-bold bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent mb-2`}
-          >
-            Join SponsorLink
-          </h1>
-          <p className={`${colors.textSecondary} text-lg`}>
-            Choose your account type to get started
-          </p>
-        </div>
-
         {/* User Type Cards */}
         <form onSubmit={handleSubmit(onSubmit)}>
           <div className="grid md:grid-cols-2 gap-6 mb-8">
@@ -158,13 +146,12 @@ const UserSelect = ({ colors, userType, setUserType, setCurrentPage }) => {
             </button>
           </div>
         </form>
-
         {/* Back to Login */}
         <div className="mt-6 text-center">
           <p className={`${colors.textSecondary}`}>
             Already have an account?{" "}
             <button
-              onClick={() => setCurrentPage("../login")}
+              onClick={() => setCurrentPage("../../auth/login")}
               className={`bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent hover:underline font-medium`}
             >
               Log In

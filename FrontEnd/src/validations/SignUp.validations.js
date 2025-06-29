@@ -80,11 +80,15 @@ export const signUpSchema = Joi.object({
     "any.required": "Looking For is required.",
   }),
 
-  followers: Joi.number().integer().min(0).required().messages({
-    "number.base": "Followers must be a number.",
-    "number.min": "Followers count cannot be negative.",
-    "number.integer": "Followers must be a whole number.",
-    "any.required": "Followers count is required.",
+  followers: Joi.alternatives().conditional(Joi.ref("$userType"), {
+    is: "influencer",
+    then: Joi.number().integer().min(0).required().messages({
+      "number.base": "Followers must be a number.",
+      "number.min": "Followers count cannot be negative.",
+      "number.integer": "Followers must be a whole number.",
+      "any.required": "Followers count is required.",
+    }),
+    otherwise: Joi.any().strip(), // Remove followers from validation for company
   }),
 });
 
@@ -139,11 +143,16 @@ export const profileDetailsSchema = Joi.object({
     "any.required": "Location is required.",
   }),
 
-  followers: Joi.number().integer().min(0).required().messages({
-    "number.base": "Followers must be a number.",
-    "number.min": "Followers count cannot be negative.",
-    "number.integer": "Followers must be a whole number.",
-    "any.required": "Followers count is required.",
+  // Followers is only required if userType is "influencer"
+  followers: Joi.alternatives().conditional(Joi.ref("$userType"), {
+    is: "influencer",
+    then: Joi.number().integer().min(0).required().messages({
+      "number.base": "Followers must be a number.",
+      "number.min": "Followers count cannot be negative.",
+      "number.integer": "Followers must be a whole number.",
+      "any.required": "Followers count is required.",
+    }),
+    otherwise: Joi.any().strip(), // Remove followers from validation for company
   }),
 });
 
@@ -180,4 +189,3 @@ export const securitySchema = Joi.object({
     "any.required": "Please confirm your password.",
   }),
 });
-  

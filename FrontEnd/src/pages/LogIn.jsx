@@ -1,14 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
 import { logInSchema } from "../validations/LogIn.validations";
+import { useLocation, useNavigate } from "react-router-dom";
 
 const Login = ({
   colors,
   setCurrentPage,
-  showPassword,
-  setShowPassword,
+  resetAll,
 }) => {
   const {
     register,
@@ -21,6 +21,17 @@ const Login = ({
       password: "",
     },
   });
+
+  const location = useLocation();
+  const navigate = useNavigate();
+  const [showPassword, setShowPassword] = useState(false);
+
+  React.useEffect(() => {
+    if (location.state?.fromSignUp && typeof resetAll === "function") {
+      resetAll();
+      navigate("/home")
+    }
+  }, [location]);
 
   const onSubmit = (data) => {
     alert("Login: " + JSON.stringify(data));
@@ -155,14 +166,14 @@ const Login = ({
                 type="button"
                 className={`flex justify-center items-center px-4 py-2 border ${colors.border} rounded-lg ${colors.card} hover:${colors.accent} transition-colors`}
               >
-                <img src="google.png" alt="Google" className="w-5 h-5" />
+                <img src="/google.png" alt="Google" className="w-5 h-5" />
                 <span className={`ml-2 text-sm ${colors.text}`}>Google</span>
               </button>
               <button
                 type="button"
                 className={`flex justify-center items-center px-4 py-2 border ${colors.border} rounded-lg ${colors.card} hover:${colors.accent} transition-colors`}
               >
-                <img src="facebook.png" alt="Facebook" className="w-5 h-5" />
+                <img src="/facebook.png" alt="Facebook" className="w-5 h-5" />
                 <span className={`ml-2 text-sm ${colors.text}`}>Facebook</span>
               </button>
             </div>
@@ -172,7 +183,7 @@ const Login = ({
               <p className={`${colors.textSecondary}`}>
                 Don't have an account?{" "}
                 <button
-                  onClick={() => setCurrentPage("userType")}
+                  onClick={() => setCurrentPage("/auth/signup/userselect")}
                   className={`bg-gradient-to-r ${colors.primary} bg-clip-text text-transparent hover:underline font-medium`}
                 >
                   Sign up

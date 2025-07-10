@@ -88,14 +88,11 @@ const ProgressBar = ({ currentStep, totalSteps = 5 }) => {
 const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   const navigate = useNavigate();
   const location = useLocation();
-
-  // Use useLocalStorage for signupFormData
   const [signupFormData, setSignupFormData] = useLocalStorage(
     "signupFormData",
     {}
   );
 
-  // Get current step based on route
   const getCurrentStep = () => {
     const path = location.pathname.split("/").pop();
     switch (path) {
@@ -118,11 +115,9 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
 
   const {
     register,
-    handleSubmit,
     setValue,
     watch,
     getValues,
-    clearErrors,
     formState: { errors },
   } = useForm({
     defaultValues: {
@@ -139,28 +134,19 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
 
   useEffect(() => {
     const subscription = watch((value) => {
-      setSignupFormData(value); // use the hook instead of localStorage.setItem
+      setSignupFormData(value);
     });
     return () => subscription.unsubscribe();
   }, [watch, setSignupFormData]);
 
-  const handleArrayInputChange = (field, value) => {
-    const items = value
-      .split(",")
-      .map((item) => item.trim())
-      .filter((item) => item);
-    setValue(field, items);
-  };
-
   // --- Step-wise validation function with allowUnknown and context for userType ---
-  const validateStep = async (schema, options = {}) => {
+  const validateStep = async (schema) => {
     const values = getValues();
     const { error } = schema.validate(values, {
       abortEarly: false,
       allowUnknown: true,
       convert: true,
       context: { userType: values.userType },
-      ...options,
     });
 
     if (error) {
@@ -192,477 +178,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
 
   // Add a state to hold step errors for display
   const [stepErrors, setStepErrors] = useState({});
-
-  const BasicInfoStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const isValid = await validateStep(basicInfoSchema);
-          if (!isValid) {
-            console.log("Continue (BasicInfoStep) errors:", stepErrors);
-          }
-          if (isValid) navigate("/auth/signup/profile-details");
-        }}
-        className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
-      >
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              {watch("userType") === "company" ? (
-                <Building2 className="w-8 h-8 text-white" />
-              ) : (
-                <User className="w-8 h-8 text-white" />
-              )}
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Basic Information
-            </h2>
-            <p className="text-gray-600">Tell us about yourself</p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                {watch("userType") === "company"
-                  ? "Company Username"
-                  : "Username"}
-              </label>
-              <input
-                {...register("username", { required: true })}
-                type="text"
-                placeholder={
-                  watch("userType") === "company"
-                    ? "eco_sips"
-                    : "travel_with_anna"
-                }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-              />
-              {(errors.username || stepErrors.username) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.username?.message ||
-                    stepErrors.username?.message ||
-                    "Username is required"}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Email Address
-              </label>
-              <div className="relative">
-                <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-                <input
-                  {...register("email", { required: true })}
-                  type="email"
-                  placeholder="your@email.com"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              {(errors.email || stepErrors.email) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.email?.message ||
-                    stepErrors.email?.message ||
-                    "Email is required"}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Social Handle
-              </label>
-              <input
-                {...register("socialHandle", { required: true })}
-                type="text"
-                placeholder="@your_handle"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-              />
-              {(errors.socialHandle || stepErrors.socialHandle) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.socialHandle?.message ||
-                    stepErrors.socialHandle?.message ||
-                    "Social handle is required"}
-                </span>
-              )}
-            </div>
-          </div>
-
-          <div className="flex space-x-4 mt-8">
-            <button
-              type="button"
-              className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
-              onClick={() => navigate("/auth/signup/userselect")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <span>Continue</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </form>
-    </>
-  );
-
-  const ProfileDetailsStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const isValid = await validateStep(profileDetailsSchema);
-          if (!isValid) {
-            console.log("Continue (ProfileDetailsStep) errors:", stepErrors);
-          }
-          if (isValid) navigate("/auth/signup/bio-interests");
-        }}
-        className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
-      >
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Tag className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Profile Details
-            </h2>
-            <p className="text-gray-600">Help others discover you</p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Category
-              </label>
-              <input
-                {...register("category", { required: true })}
-                type="text"
-                placeholder={
-                  watch("userType") === "company" ? "Eco Products" : "Travel"
-                }
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-              />
-              {(errors.category || stepErrors.category) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.category?.message ||
-                    stepErrors.category?.message ||
-                    "Category is required"}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Website
-              </label>
-              <div className="relative">
-                <Globe className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-                <input
-                  {...register("website")}
-                  type="url"
-                  placeholder="not required"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              {stepErrors.website && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {stepErrors.website.message}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Location
-              </label>
-              <div className="relative">
-                <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-                <input
-                  {...register("location", { required: true })}
-                  type="text"
-                  placeholder="Barcelona, Spain"
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              {(errors.location || stepErrors.location) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.location?.message ||
-                    stepErrors.location?.message ||
-                    "Location is required"}
-                </span>
-              )}
-            </div>
-            {watch("userType") === "influencer" && (
-              <div className="relative">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Followers Count
-                </label>
-                <input
-                  {...register("followers")}
-                  type="number"
-                  placeholder="85400"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-                {stepErrors.followers && (
-                  <span className="text-red-500 text-xs absolute top-0 right-0">
-                    {stepErrors.followers.message}
-                  </span>
-                )}
-              </div>
-            )}
-          </div>
-          <div className="flex space-x-4 mt-8">
-            <button
-              type="button"
-              className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
-              onClick={() => navigate("/auth/signup/basic-info")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <span>Continue</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </form>
-    </>
-  );
-
-  const BioInterestsStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const isValid = await validateStep(bioInterestsSchema);
-          if (!isValid) {
-            console.log("Continue (BioInterestsStep) errors:", stepErrors);
-          }
-          if (isValid) navigate("/auth/signup/security");
-        }}
-        className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
-      >
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Heart className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">About You</h2>
-            <p className="text-gray-600">Share your story and interests</p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Bio
-              </label>
-              <textarea
-                {...register("bio", { required: true })}
-                placeholder="Tell us about yourself..."
-                rows={4}
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors resize-none"
-              />
-              {(errors.bio || stepErrors.bio) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.bio?.message ||
-                    stepErrors.bio?.message ||
-                    "Bio is required"}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Interests
-              </label>
-              <input
-                type="text"
-                onChange={(e) =>
-                  handleArrayInputChange("interests", e.target.value)
-                }
-                placeholder="photography, travel, food (comma separated)"
-                className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-              />
-              {stepErrors.interests && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {stepErrors.interests.message}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Looking For
-              </label>
-              <div className="relative">
-                <Target className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
-                <input
-                  type="text"
-                  onChange={(e) =>
-                    handleArrayInputChange("lookingFor", e.target.value)
-                  }
-                  placeholder={
-                    watch("userType") === "company"
-                      ? "Micro Influencers, Content Creators"
-                      : "Brand Deals, Sponsorships"
-                  }
-                  className="w-full pl-12 pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-              </div>
-              {stepErrors.lookingFor && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {stepErrors.lookingFor.message}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex space-x-4 mt-8">
-            <button
-              type="button"
-              className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
-              onClick={() => navigate("/auth/signup/profile-details")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <span>Continue</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </form>
-    </>
-  );
-
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  const SecurityStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <form
-        onSubmit={async (e) => {
-          e.preventDefault();
-          const isValid = await validateStep(securitySchema);
-          if (!isValid) {
-            console.log("Continue (SecurityStep) errors:", stepErrors);
-          }
-          if (isValid) navigate("/auth/signup/review");
-        }}
-        className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
-      >
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
-              <Lock className="w-8 h-8 text-white" />
-            </div>
-            <h2 className="text-2xl font-bold text-gray-800 mb-2">
-              Secure Your Account
-            </h2>
-            <p className="text-gray-600">Create a strong password</p>
-          </div>
-
-          <div className="space-y-6">
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Password
-              </label>
-              <div className="relative">
-                <input
-                  {...register("password", { required: true })}
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Create a strong password"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text}`}
-                >
-                  {!showPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {(errors.password || stepErrors.password) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.password?.message ||
-                    stepErrors.password?.message ||
-                    "Password is required"}
-                </span>
-              )}
-            </div>
-            <div className="relative">
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Confirm Password
-              </label>
-              <div className="relative">
-                <input
-                  {...register("confirmPassword", {
-                    required: true,
-                    validate: (value) => value === getValues("password"),
-                  })}
-                  type={showConfirmPassword ? "text" : "password"}
-                  placeholder="Confirm your password"
-                  className="w-full px-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors"
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className={`absolute right-3 top-1/2 transform -translate-y-1/2 ${colors.textSecondary} hover:${colors.text}`}
-                >
-                  {!showConfirmPassword ? (
-                    <EyeOff className="w-5 h-5" />
-                  ) : (
-                    <Eye className="w-5 h-5" />
-                  )}
-                </button>
-              </div>
-              {(errors.confirmPassword || stepErrors.confirmPassword) && (
-                <span className="text-red-500 text-xs absolute top-0 right-0">
-                  {errors.confirmPassword?.type === "validate"
-                    ? "Passwords do not match"
-                    : errors.confirmPassword?.message ||
-                      stepErrors.confirmPassword?.message ||
-                      "Confirm password is required"}
-                </span>
-              )}
-            </div>
-          </div>
-          <div className="flex space-x-4 mt-8">
-            <button
-              type="button"
-              className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
-              onClick={() => navigate("/auth/signup/bio-interests")}
-            >
-              <ArrowLeft className="w-5 h-5" />
-              <span>Back</span>
-            </button>
-            <button
-              type="submit"
-              className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
-            >
-              <span>Continue</span>
-              <ArrowRight className="w-5 h-5" />
-            </button>
-          </div>
-        </div>
-      </form>
-    </>
-  );
 
   const ReviewStep = (
     <>
@@ -826,41 +341,45 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                     </p>
                   </div>
                 </div>
-                {watch("interests") && watch("interests").length > 0 && (
-                  <div>
-                    <span className="text-sm font-medium text-green-700 block mb-2">
-                      Interests:
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {watch("interests").map((interest, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-medium"
-                        >
-                          {interest}
-                        </span>
-                      ))}
+
+                {Array.isArray(watch("interests")) &&
+                  watch("interests").length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium text-green-700 block mb-2">
+                        Interests:
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {watch("interests").map((interest, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-medium"
+                          >
+                            {interest}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
-                {watch("lookingFor") && watch("lookingFor").length > 0 && (
-                  <div>
-                    <span className="text-sm font-medium text-green-700 block mb-2">
-                      Looking For:
-                    </span>
-                    <div className="flex flex-wrap gap-1">
-                      {watch("lookingFor").map((item, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium flex items-center"
-                        >
-                          <Target className="w-3 h-3 mr-1" />
-                          {item}
-                        </span>
-                      ))}
+                  )}
+
+                {Array.isArray(watch("lookingFor")) &&
+                  watch("lookingFor").length > 0 && (
+                    <div>
+                      <span className="text-sm font-medium text-green-700 block mb-2">
+                        Looking For:
+                      </span>
+                      <div className="flex flex-wrap gap-1">
+                        {watch("lookingFor").map((item, index) => (
+                          <span
+                            key={index}
+                            className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium flex items-center"
+                          >
+                            <Target className="w-3 h-3 mr-1" />
+                            {item}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
               </div>
             </div>
           </div>
@@ -924,6 +443,154 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     </>
   );
 
+  const data = [
+    {
+      index: 0,
+      name: "Basic Info",
+      slogan: "tell us about yourself",
+      elementName: "BasicInfoStep",
+      RoutePath: "basic-info",
+      schema: basicInfoSchema,
+      icon: [
+        <User className="w-8 h-8 text-white" />,
+        <Building2 className="w-8 h-8 text-white" />,
+      ],
+      inputs: [
+        {
+          name: "username",
+          label: "Username",
+          placeholder: "travel_with_anna",
+          icon: (
+            <User className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          ),
+          type: "text",
+        },
+        {
+          name: "email",
+          label: "Email Address",
+          placeholder: "your@email.com",
+          icon: (
+            <Mail className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          ),
+          type: "email",
+        },
+        {
+          name: "socialHandle",
+          label: "Social Handle",
+          placeholder: "@your_handle",
+          type: "text",
+        },
+      ],
+    },
+    {
+      index: 1,
+      name: "Profile Details",
+      slogan: "Help others discover you",
+      elementName: "ProfileDetailsStep",
+      RoutePath: "profile-details",
+      schema: profileDetailsSchema,
+      icon: <Tag className="w-8 h-8 text-white" />,
+      inputs: [
+        {
+          name: "category",
+          label: "Category",
+          placeholder: "Travel",
+          type: "text",
+        },
+        {
+          name: "website",
+          label: "Website",
+          placeholder: "not required",
+          icon: (
+            <Globe className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          ),
+          type: "url",
+        },
+        {
+          name: "location",
+          label: "Location",
+          placeholder: "Barcelona, Spain",
+          icon: (
+            <MapPin className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          ),
+          type: "text",
+        },
+        {
+          name: "followers",
+          label: "Followers Count",
+          placeholder: "85400",
+          type: "number",
+          showIf: (userType) => userType === "influencer", // Optional conditional field logic
+        },
+      ],
+    },
+    {
+      index: 2,
+      name: "Bio Interests",
+      slogan: "Share your story and interests",
+      elementName: "BioInterestsStep",
+      RoutePath: "bio-interests",
+      schema: bioInterestsSchema,
+      icon: <Heart className="w-8 h-8 text-white" />,
+      inputs: [
+        {
+          name: "bio",
+          label: "Bio",
+          placeholder: "Tell us about yourself...",
+          type: "textarea",
+          rows: 4,
+        },
+        {
+          name: "interests",
+          label: "Interests",
+          placeholder: "photography, travel, food (comma separated)",
+          type: "text",
+          isArrayInput: true,
+        },
+        {
+          name: "lookingFor",
+          label: "Looking For",
+          placeholder: "Brand Deals, Sponsorships",
+          type: "text",
+          isArrayInput: true,
+          icon: (
+            <Target className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
+          ),
+          getPlaceholder: (userType) =>
+            userType === "company"
+              ? "Micro Influencers, Content Creators"
+              : "Brand Deals, Sponsorships",
+        },
+      ],
+    },
+    {
+      index: 3,
+      name: "Security",
+      slogan: "Create a strong password",
+      elementName: "SecurityStep",
+      RoutePath: "security",
+      schema: securitySchema,
+      icon: <Lock className="w-8 h-8 text-white" />,
+      inputs: [
+        {
+          name: "password",
+          label: "Password",
+          placeholder: "Create a strong password",
+          type: "password",
+          hasToggle: true,
+        },
+        {
+          name: "confirmPassword",
+          label: "Confirm Password",
+          placeholder: "Confirm your password",
+          type: "password",
+          hasToggle: true,
+          validate: (value, getValues) => value === getValues("password"),
+        },
+      ],
+    },
+  ];
+
   // Place resetAll before useEffect so it can be registered
   const resetAll = () => {
     setSignupFormData({});
@@ -934,7 +601,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   };
 
   useEffect(() => {
-    setResetAll(() => resetAll());
+    setResetAll(() => resetAll()); // ✅ Set function reference, not invocation
   }, [setResetAll]);
 
   // Fix: Always get the latest savedData from useLocalStorage for validation and step checks
@@ -981,7 +648,130 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     }
   };
 
-  // Reset all form data when navigating to /login
+  const signInStepsFunct = (data, route) => {
+    const stepData = data.find((item) => item.RoutePath === route);
+    const nextStep = data.find((item) => item.index === stepData.index + 1);
+    const prevStep = data.find((item) => item.index === stepData.index - 1);
+
+    return (
+      <>
+        <ProgressBar currentStep={getCurrentStep()} />
+        <form
+          onSubmit={async (e) => {
+            e.preventDefault();
+
+            stepData.inputs?.forEach((input) => {
+              if (input.isArrayInput) {
+                const raw = getValues(input.name);
+
+                const arr = Array.isArray(raw)
+                  ? raw
+                  : typeof raw === "string"
+                  ? raw
+                      .split(",")
+                      .map((item) => item.trim())
+                      .filter(Boolean)
+                  : [];
+
+                setValue(input.name, arr);
+              }
+            });
+
+            const isValid = await validateStep(stepData.schema);
+            if (!isValid) {
+              console.log(
+                `Continue (${stepData.elementName}) errors:`,
+                stepErrors
+              );
+            }
+            if (isValid) {
+              if (nextStep) {
+                navigate(`/auth/signup/${nextStep.RoutePath}`);
+              } else {
+                navigate("/auth/signup/review");
+              }
+            }
+          }}
+          className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
+        >
+          <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
+            <div className="text-center mb-8">
+              <div className="w-16 h-16 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                {stepData.RoutePath !== "basic-info"
+                  ? stepData.icon
+                  : watch("userType") === "company"
+                  ? stepData.icon[1]
+                  : stepData.icon[0]}
+              </div>
+              <h2 className="text-2xl font-bold text-gray-800 mb-2">
+                {stepData.name}
+              </h2>
+              <p className="text-gray-600">{stepData.slogan}</p>
+            </div>
+
+            <div className="space-y-6">
+              {stepData.inputs
+                ?.filter((input) => {
+                  if (typeof input.showIf === "function") {
+                    return input.showIf(watch("userType"));
+                  }
+                  return true;
+                })
+                .map((input) => (
+                  <div key={input.name} className="relative">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
+                      {input.label}
+                    </label>
+                    <div className="relative">
+                      {input.icon && input.icon}
+                      <input
+                        {...register(input.name, { required: true })}
+                        type={input.type || "text"}
+                        placeholder={input.placeholder}
+                        className={`w-full ${
+                          input.icon ? "pl-12" : "px-4"
+                        } pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors`}
+                      />
+                    </div>
+                    {(errors[input.name] || stepErrors[input.name]) && (
+                      <span className="text-red-500 text-xs absolute top-0 right-0">
+                        {errors[input.name]?.message ||
+                          stepErrors[input.name]?.message ||
+                          `${input.label} is required`}
+                      </span>
+                    )}
+                  </div>
+                ))}
+            </div>
+
+            <div className="flex space-x-4 mt-8">
+              <button
+                type="button"
+                className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
+                onClick={() => {
+                  if (prevStep) {
+                    navigate(`/auth/signup/${prevStep.RoutePath}`);
+                  } else {
+                    navigate("/auth/signup/userselect");
+                  }
+                }}
+              >
+                <ArrowLeft className="w-5 h-5" />
+                <span>Back</span>
+              </button>
+              <button
+                type="submit"
+                className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
+              >
+                <span>Continue</span>
+                <ArrowRight className="w-5 h-5" />
+              </button>
+            </div>
+          </div>
+        </form>
+      </>
+    );
+  };
 
   return (
     <Routes>
@@ -994,7 +784,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         path="basic-info"
         element={
           userType ? (
-            BasicInfoStep
+            signInStepsFunct(data, "basic-info")
           ) : (
             <Navigate to="/auth/signup/userselect" replace />
           )
@@ -1006,7 +796,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           !isStepCompleted("basic-info") ? (
             <Navigate to="/auth/signup/basic-info" replace />
           ) : userType ? (
-            ProfileDetailsStep
+            signInStepsFunct(data, "profile-details")
           ) : (
             <Navigate to="/auth/signup/userselect" replace />
           )
@@ -1018,7 +808,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           !isStepCompleted("profile-details") ? (
             <Navigate to="/auth/signup/profile-details" replace />
           ) : userType ? (
-            BioInterestsStep
+            signInStepsFunct(data, "bio-interests")
           ) : (
             <Navigate to="/auth/signup/userselect" replace />
           )
@@ -1030,7 +820,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           !isStepCompleted("bio-interests") ? (
             <Navigate to="/auth/signup/bio-interests" replace />
           ) : userType ? (
-            SecurityStep
+            signInStepsFunct(data, "security")
           ) : (
             <Navigate to="/auth/signup/userselect" replace />
           )

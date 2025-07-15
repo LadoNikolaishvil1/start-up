@@ -19,21 +19,15 @@ import {
   MapPin,
   Heart,
   Target,
-  Edit3,
   AtSign,
   Users,
   Sparkles,
-  EyeOff,
-  Eye,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import UserSelect from "./UserSellect";
 import {
   signUpSchema,
-  basicInfoSchema,
-  profileDetailsSchema,
-  bioInterestsSchema,
-  securitySchema,
+  createStepSchema,
 } from "../validations/SignUp.validations";
 import { useLocalStorage } from "usehooks-ts";
 
@@ -450,7 +444,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       slogan: "tell us about yourself",
       elementName: "BasicInfoStep",
       RoutePath: "basic-info",
-      schema: basicInfoSchema,
       icon: [
         <User className="w-8 h-8 text-white" />,
         <Building2 className="w-8 h-8 text-white" />,
@@ -488,7 +481,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       slogan: "Help others discover you",
       elementName: "ProfileDetailsStep",
       RoutePath: "profile-details",
-      schema: profileDetailsSchema,
       icon: <Tag className="w-8 h-8 text-white" />,
       inputs: [
         {
@@ -530,7 +522,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       slogan: "Share your story and interests",
       elementName: "BioInterestsStep",
       RoutePath: "bio-interests",
-      schema: bioInterestsSchema,
       icon: <Heart className="w-8 h-8 text-white" />,
       inputs: [
         {
@@ -569,7 +560,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       slogan: "Create a strong password",
       elementName: "SecurityStep",
       RoutePath: "security",
-      schema: securitySchema,
       icon: <Lock className="w-8 h-8 text-white" />,
       inputs: [
         {
@@ -648,10 +638,14 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     }
   };
 
-  const signInStepsFunct = (data, route) => {
-    const stepData = data.find((item) => item.RoutePath === route);
-    const nextStep = data.find((item) => item.index === stepData.index + 1);
-    const prevStep = data.find((item) => item.index === stepData.index - 1);
+  const signInStepsFunct = (WholeData, route) => {
+    const stepData = WholeData.find((item) => item.RoutePath === route);
+    const nextStep = WholeData.find(
+      (item) => item.index === stepData.index + 1
+    );
+    const prevStep = WholeData.find(
+      (item) => item.index === stepData.index - 1
+    );
 
     return (
       <>
@@ -677,7 +671,10 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
               }
             });
 
-            const isValid = await validateStep(stepData.schema);
+            const inputNames = stepData.inputs.map((i) => i.name);
+            const dynamicSchema = createStepSchema(inputNames);
+            const isValid = await validateStep(dynamicSchema);
+
             if (!isValid) {
               console.log(
                 `Continue (${stepData.elementName}) errors:`,
@@ -773,6 +770,33 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     );
   };
 
+  const CreateStepRoutes = (WholeData) => {
+    WholeData.map((step, index) => {
+      const prevStep = WholeData.find((el) => el.index === index - 1);
+      console.log("hello");
+      return (
+        <Route
+          path={step.RoutePath}
+          element={
+            prevStep ? (
+              !isStepCompleted(`${prevStep.RoutePath}`) ? (
+                <Navigate to={`/auth/signup/${prevStep.RoutePath}`} replace />
+              ) : userType ? (
+                signInStepsFunct(WholeData, step.RoutePath)
+              ) : (
+                <Navigate to={`/auth/signup/userselect`} replace />
+              )
+            ) : userType ? (
+              signInStepsFunct(WholeData, step.RoutePath)
+            ) : (
+              <Navigate to={`/auth/signup/userselect`} replace />
+            )
+          }
+        />
+      );
+    });
+  };
+
   return (
     <Routes>
       <Route
@@ -780,52 +804,30 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         element={<Navigate to="/auth/signup/userselect" replace />}
       />
       <Route path="userselect" element={UserSelectStep} />
-      <Route
-        path="basic-info"
-        element={
-          userType ? (
-            signInStepsFunct(data, "basic-info")
-          ) : (
-            <Navigate to="/auth/signup/userselect" replace />
-          )
-        }
-      />
-      <Route
-        path="profile-details"
-        element={
-          !isStepCompleted("basic-info") ? (
-            <Navigate to="/auth/signup/basic-info" replace />
-          ) : userType ? (
-            signInStepsFunct(data, "profile-details")
-          ) : (
-            <Navigate to="/auth/signup/userselect" replace />
-          )
-        }
-      />
-      <Route
-        path="bio-interests"
-        element={
-          !isStepCompleted("profile-details") ? (
-            <Navigate to="/auth/signup/profile-details" replace />
-          ) : userType ? (
-            signInStepsFunct(data, "bio-interests")
-          ) : (
-            <Navigate to="/auth/signup/userselect" replace />
-          )
-        }
-      />
-      <Route
-        path="security"
-        element={
-          !isStepCompleted("bio-interests") ? (
-            <Navigate to="/auth/signup/bio-interests" replace />
-          ) : userType ? (
-            signInStepsFunct(data, "security")
-          ) : (
-            <Navigate to="/auth/signup/userselect" replace />
-          )
-        }
-      />
+      {data.map((step, index) => {
+        const prevStep = data.find((el) => el.index === index - 1);
+        return (
+          <Route
+            key={step.RoutePath}
+            path={step.RoutePath}
+            element={
+              prevStep ? (
+                !isStepCompleted(`${prevStep.RoutePath}`) ? (
+                  <Navigate to={`/auth/signup/${prevStep.RoutePath}`} replace />
+                ) : userType ? (
+                  signInStepsFunct(data, step.RoutePath)
+                ) : (
+                  <Navigate to={`/auth/signup/userselect`} replace />
+                )
+              ) : userType ? (
+                signInStepsFunct(data, step.RoutePath)
+              ) : (
+                <Navigate to={`/auth/signup/userselect`} replace />
+              )
+            }
+          />
+        );
+      })}
       <Route
         path="review"
         element={

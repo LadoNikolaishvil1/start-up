@@ -1,13 +1,15 @@
 import React from "react";
-import { createBrowserRouter, RouterProvider, Navigate } from "react-router-dom";
-import Home from "./pages/Home.jsx";
-import AuthPages from "./pages/StarterPage.jsx";
+import { createBrowserRouter, RouterProvider, Navigate, Routes, Route } from "react-router-dom";
+import Home from "./pages/home/Home.jsx";
+import AuthPages from "./pages/auth/StarterPage.jsx";
+import ErrorPage from "./pages/errorPage.jsx";
 
 const router = createBrowserRouter(
   [
     {
       path: "/",
       element: <Navigate to="/home" replace />,
+      errorElement: <ErrorPage />,
     },
     {
       path: "/home/*",

@@ -1,5 +1,5 @@
 import React from "react";
-import Card from "../components/Card";
+import Card from "../../components/Card";
 import { useEffect } from "react";
 
 const Browse = ({ themeColors }) => {
@@ -19,7 +19,6 @@ const Browse = ({ themeColors }) => {
   useEffect(() => {
     getUsers();
   }, []);
-
 
   // Post a user after 2 seconds when component mounts
   // useEffect(() => {
@@ -58,7 +57,7 @@ const Browse = ({ themeColors }) => {
   //       .then(() => {
   //         getUsers();
   //       })
-  //       .catch((err) => console.error("POST failed:", err));      
+  //       .catch((err) => console.error("POST failed:", err));
   //   }, 2000);
 
   //   return () => clearTimeout(timer);

@@ -1,9 +1,10 @@
 import React, { useState, useRef } from "react";
 import { Routes, Route, useNavigate, Navigate } from "react-router-dom";
-import { useTheme } from "../hooks/GetTheme.jsx";
-import Login from "./login.jsx";
+import { useTheme } from "../../hooks/GetTheme.jsx";
+import Login from "./LogIn.jsx";
 import SignUp from "./SignUp.jsx";
 import { useLocalStorage } from "usehooks-ts";
+import ErrorPage from "../errorPage.jsx";
 
 const AuthPages = () => {
   const [userType, setUserType] = useLocalStorage("userType", "");
@@ -45,6 +46,7 @@ const AuthPages = () => {
               />
             }
           />
+          <Route path="*" element={<ErrorPage />} />
         </Routes>
       </div>
     </div>

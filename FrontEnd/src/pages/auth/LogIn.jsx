@@ -2,14 +2,10 @@ import React, { useState } from "react";
 import { Eye, EyeOff, Mail, Lock, ArrowRight } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { joiResolver } from "@hookform/resolvers/joi";
-import { logInSchema } from "../validations/LogIn.validations";
+import { logInSchema } from "../../validations/LogIn.validations";
 import { useLocation, useNavigate } from "react-router-dom";
 
-const Login = ({
-  colors,
-  setCurrentPage,
-  resetAll,
-}) => {
+const Login = ({ colors, setCurrentPage, resetAll }) => {
   const {
     register,
     handleSubmit,
@@ -29,7 +25,7 @@ const Login = ({
   React.useEffect(() => {
     if (location.state?.fromSignUp && typeof resetAll === "function") {
       resetAll();
-      navigate("/home")
+      navigate("/home");
     }
   }, [location]);
 

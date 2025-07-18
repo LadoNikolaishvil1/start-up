@@ -8,8 +8,14 @@ import {
   Star,
   Settings as SettingsIcon,
 } from "lucide-react";
-import { Routes, Route, useNavigate, useLocation, Navigate } from "react-router-dom";
-import themes, { useTheme } from "../hooks/GetTheme";
+import {
+  Routes,
+  Route,
+  useNavigate,
+  useLocation,
+  Navigate,
+} from "react-router-dom";
+import themes, { useTheme } from "../../hooks/GetTheme";
 import Browse from "./Browse";
 import Matches from "./Matches";
 import Messages from "./Messages";
@@ -115,15 +121,13 @@ const Home = () => {
       <div className="px-8 py-8 w-full max-h-[100vh] overflow-y-scroll">
         <Routes>
           <Route path="/" element={<Navigate to="/home/browse" replace />} />
-          <Route path="/browse" element={<Browse themeColors={themeColors} />} />
+          <Route
+            path="/browse"
+            element={<Browse themeColors={themeColors} />}
+          />
           <Route path="/matches" element={<Matches />} />
           <Route path="/messages" element={<Messages />} />
-          <Route
-            path="/recommended"
-            element={
-              <Recommended />
-            }
-          />
+          <Route path="/recommended" element={<Recommended />} />
           <Route
             path="/settings"
             element={
@@ -135,6 +139,10 @@ const Home = () => {
                 isDarkMode={isDarkMode}
               />
             }
+          />
+          <Route
+            path="*"
+            element={<Navigate to="/home/browse" replace />}
           />
         </Routes>
       </div>

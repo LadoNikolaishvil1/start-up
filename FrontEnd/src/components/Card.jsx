@@ -92,10 +92,10 @@ const Card = ({ themeColors, user }) => {
               {user?.username}
             </h3>
             <p
-              className={`text-sm ${themeColors.textSecondary} flex items-center gap-1`}
+              className={`text-sm ${themeColors.textSecondary} flex items-center gap-1 flex-1 min-w-0 whitespace-nowrap overflow-hidden text-ellipsis`}
             >
-              <MapPin className="w-3 h-3" />
-              {user?.location}
+              <MapPin className="w-3 h-3 shrink-0" />
+              <span className="truncate">{user?.location}</span>
             </p>
           </div>
         </div>

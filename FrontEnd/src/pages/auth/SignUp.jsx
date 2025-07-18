@@ -24,12 +24,13 @@ import {
   Sparkles,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
-import UserSelect from "./UserSellect";
+import UserSelect from "./UserSellect.jsx";
 import {
   signUpSchema,
   createStepSchema,
-} from "../validations/SignUp.validations";
+} from "../../validations/SignUp.validations";
 import { useLocalStorage } from "usehooks-ts";
+import ErrorPage from "../errorPage.jsx";
 
 const initialDefaultValues = {
   userType: "",
@@ -769,34 +770,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       </>
     );
   };
-
-  const CreateStepRoutes = (WholeData) => {
-    WholeData.map((step, index) => {
-      const prevStep = WholeData.find((el) => el.index === index - 1);
-      console.log("hello");
-      return (
-        <Route
-          path={step.RoutePath}
-          element={
-            prevStep ? (
-              !isStepCompleted(`${prevStep.RoutePath}`) ? (
-                <Navigate to={`/auth/signup/${prevStep.RoutePath}`} replace />
-              ) : userType ? (
-                signInStepsFunct(WholeData, step.RoutePath)
-              ) : (
-                <Navigate to={`/auth/signup/userselect`} replace />
-              )
-            ) : userType ? (
-              signInStepsFunct(WholeData, step.RoutePath)
-            ) : (
-              <Navigate to={`/auth/signup/userselect`} replace />
-            )
-          }
-        />
-      );
-    });
-  };
-
+  
   return (
     <Routes>
       <Route
@@ -840,6 +814,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           )
         }
       />
+      <Route path="*" element={<ErrorPage />} />
     </Routes>
   );
 };

@@ -13,3 +13,12 @@ button {
 input[type="checkbox"] {
     cursor: pointer;
 }
+
+.editing-field {
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0%, 100% { border-color: #a855f7; }
+  50% { border-color: #d946ef; }
+}

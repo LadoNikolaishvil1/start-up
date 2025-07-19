@@ -22,6 +22,10 @@ import {
   AtSign,
   Users,
   Sparkles,
+  Eye,
+  Building,
+  Shield,
+  CheckCircle,
 } from "lucide-react";
 import { useForm } from "react-hook-form";
 import UserSelect from "./UserSellect.jsx";
@@ -87,6 +91,27 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     "signupFormData",
     {}
   );
+
+  // Add these state variables for edit functionality
+  const [editingSection, setEditingSection] = useState(null);
+  const [editingField, setEditingField] = useState(null);
+  const [stepErrors, setStepErrors] = useState({});
+
+  // Get state from location for edit context
+  const { state } = location;
+  const isFromReview = state?.fromReview;
+  const editingSectionFromState = state?.editingSection;
+  const editingFieldFromState = state?.editingField;
+
+  // Set editing state from location state when navigating from review
+  useEffect(() => {
+    if (editingSectionFromState) {
+      setEditingSection(editingSectionFromState);
+    }
+    if (editingFieldFromState) {
+      setEditingField(editingFieldFromState);
+    }
+  }, [editingSectionFromState, editingFieldFromState]);
 
   const getCurrentStep = () => {
     const path = location.pathname.split("/").pop();
@@ -157,6 +182,37 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     return true;
   };
 
+  // Add this helper function to handle edit navigation
+  const handleEditSection = (sectionType, fieldName = null) => {
+    setEditingSection(sectionType);
+    setEditingField(fieldName);
+
+    // Navigate to appropriate step based on field being edited
+    const fieldToStepMap = {
+      username: "basic-info",
+      email: "basic-info",
+      socialHandle: "basic-info",
+      category: "profile-details",
+      location: "profile-details",
+      website: "profile-details",
+      followers: "profile-details",
+      bio: "bio-interests",
+      interests: "bio-interests",
+      lookingFor: "bio-interests",
+      password: "security",
+      confirmPassword: "security",
+    };
+
+    const targetStep = fieldToStepMap[fieldName] || sectionType;
+    navigate(`/auth/signup/${targetStep}`, {
+      state: {
+        editingSection: sectionType,
+        editingField: fieldName,
+        fromReview: true,
+      },
+    });
+  };
+
   const UserSelectStep = (
     <>
       <ProgressBar currentStep={getCurrentStep()} />
@@ -167,273 +223,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           setUserType={setUserType}
           setCurrentPage={(page) => navigate(`/auth/signup/${page}`)}
         />
-      </div>
-    </>
-  );
-
-  // Add a state to hold step errors for display
-  const [stepErrors, setStepErrors] = useState({});
-
-  const ReviewStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <div className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20">
-        <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-4xl">
-          {/* Header Section */}
-          <div className="text-center mb-8">
-            <div className="relative">
-              <div className="w-24 h-24 bg-gradient-to-r from-purple-500 to-blue-500 rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg">
-                <Sparkles className="w-12 h-12 text-white animate-pulse" />
-              </div>
-              <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-500 rounded-full flex items-center justify-center shadow-lg">
-                <Check className="w-5 h-5 text-white" />
-              </div>
-            </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent mb-3">
-              Almost There! 🎉
-            </h2>
-            <p className="text-gray-600 text-lg max-w-md mx-auto">
-              Review your information before creating your account. Everything
-              looks great!
-            </p>
-          </div>
-
-          {/* Progress Indicator */}
-          <div className="mb-8">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-sm font-medium text-gray-700">
-                Profile Completion
-              </span>
-              <span className="text-sm font-bold text-green-600">100%</span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-3 shadow-inner">
-              <div
-                className="bg-gradient-to-r from-green-400 to-green-600 h-3 rounded-full shadow-sm transition-all duration-1000 ease-out"
-                style={{ width: "100%" }}
-              />
-            </div>
-          </div>
-
-          {/* Content Grid */}
-          <div className="grid lg:grid-cols-3 gap-6 mb-8">
-            {/* Personal Information Card */}
-            <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-2xl p-6 border border-purple-200 hover:shadow-lg transition-all duration-300">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-purple-500 rounded-full flex items-center justify-center mr-3">
-                  <User className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-purple-800">
-                  Personal Info
-                </h3>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-purple-200 last:border-b-0">
-                  <span className="text-sm font-medium text-purple-700">
-                    Type:
-                  </span>
-                  <span className="px-3 py-1 bg-purple-200 text-purple-800 rounded-full text-xs font-bold uppercase tracking-wide">
-                    {watch("userType")}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-purple-200 last:border-b-0">
-                  <span className="text-sm font-medium text-purple-700">
-                    Username:
-                  </span>
-                  <span className="text-sm font-bold text-purple-900 flex items-center">
-                    <AtSign className="w-3 h-3 mr-1" />
-                    {watch("username")}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-purple-200 last:border-b-0">
-                  <span className="text-sm font-medium text-purple-700">
-                    Email:
-                  </span>
-                  <span className="text-sm text-purple-800 flex items-center">
-                    <Mail className="w-3 h-3 mr-1" />
-                    {watch("email")}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2">
-                  <span className="text-sm font-medium text-purple-700">
-                    Social:
-                  </span>
-                  <span className="text-sm text-purple-800">
-                    {watch("socialHandle")}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Profile Details Card */}
-            <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl p-6 border border-blue-200 hover:shadow-lg transition-all duration-300">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-blue-500 rounded-full flex items-center justify-center mr-3">
-                  <Tag className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-blue-800">
-                  Profile Details
-                </h3>
-              </div>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center py-2 border-b border-blue-200 last:border-b-0">
-                  <span className="text-sm font-medium text-blue-700">
-                    Category:
-                  </span>
-                  <span className="text-sm font-bold text-blue-900">
-                    {watch("category")}
-                  </span>
-                </div>
-                <div className="flex justify-between items-center py-2 border-b border-blue-200 last:border-b-0">
-                  <span className="text-sm font-medium text-blue-700">
-                    Location:
-                  </span>
-                  <span className="text-sm text-blue-800 flex items-center">
-                    <MapPin className="w-3 h-3 mr-1" />
-                    {watch("location")}
-                  </span>
-                </div>
-                {watch("website") && (
-                  <div className="flex justify-between items-center py-2 border-b border-blue-200 last:border-b-0">
-                    <span className="text-sm font-medium text-blue-700">
-                      Website:
-                    </span>
-                    <span className="text-sm text-blue-600 hover:underline truncate max-w-32 flex items-center">
-                      <Globe className="w-3 h-3 mr-1" />
-                      {watch("website")}
-                    </span>
-                  </div>
-                )}
-                {watch("userType") === "influencer" && watch("followers") && (
-                  <div className="flex justify-between items-center py-2">
-                    <span className="text-sm font-medium text-blue-700">
-                      Followers:
-                    </span>
-                    <span className="text-sm font-bold text-blue-900 flex items-center">
-                      <Users className="w-3 h-3 mr-1" />
-                      {parseInt(watch("followers")).toLocaleString()}
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* About & Interests Card */}
-            <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-2xl p-6 border border-green-200 hover:shadow-lg transition-all duration-300">
-              <div className="flex items-center mb-4">
-                <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center mr-3">
-                  <Heart className="w-5 h-5 text-white" />
-                </div>
-                <h3 className="text-lg font-bold text-green-800">About You</h3>
-              </div>
-              <div className="space-y-4">
-                <div>
-                  <span className="text-sm font-medium text-green-700 block mb-2">
-                    Bio:
-                  </span>
-                  <div className="bg-white p-3 rounded-lg border border-green-200 shadow-sm">
-                    <p className="text-sm text-green-800 leading-relaxed">
-                      {watch("bio")}
-                    </p>
-                  </div>
-                </div>
-
-                {Array.isArray(watch("interests")) &&
-                  watch("interests").length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-green-700 block mb-2">
-                        Interests:
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {watch("interests").map((interest, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-green-200 text-green-800 rounded-full text-xs font-medium"
-                          >
-                            {interest}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-
-                {Array.isArray(watch("lookingFor")) &&
-                  watch("lookingFor").length > 0 && (
-                    <div>
-                      <span className="text-sm font-medium text-green-700 block mb-2">
-                        Looking For:
-                      </span>
-                      <div className="flex flex-wrap gap-1">
-                        {watch("lookingFor").map((item, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-1 bg-yellow-200 text-yellow-800 rounded-full text-xs font-medium flex items-center"
-                          >
-                            <Target className="w-3 h-3 mr-1" />
-                            {item}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-                  )}
-              </div>
-            </div>
-          </div>
-
-          {/* Security Status */}
-          <div className="bg-gradient-to-r from-indigo-50 to-purple-50 rounded-2xl p-4 mb-8 border border-indigo-200">
-            <div className="flex items-center justify-center">
-              <div className="flex items-center space-x-3">
-                <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                  <Lock className="w-4 h-4 text-white" />
-                </div>
-                <span className="text-sm font-medium text-indigo-800">
-                  Password secured and verified
-                </span>
-                <Check className="w-5 h-5 text-green-500" />
-              </div>
-            </div>
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex space-x-4">
-            <button
-              type="button"
-              className="flex-1 px-6 py-4 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-2xl transition-all duration-300 flex items-center justify-center space-x-3 group"
-              onClick={() => navigate("/auth/signup/security")}
-            >
-              <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-              <span>Back to Edit</span>
-            </button>
-            <button
-              type="button"
-              className="flex-2 px-8 py-4 bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600 text-white font-bold rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300 flex items-center justify-center space-x-3 group"
-              onClick={async () => {
-                const isValid = await validateStep(signUpSchema);
-                if (!isValid) {
-                  console.log(
-                    "Create Account (ReviewStep) errors:",
-                    stepErrors
-                  );
-                }
-                if (isValid) {
-                  console.log("Form submitted:", getSavedData());
-                  navigate("/auth/login", { state: { fromSignUp: true } });
-                }
-              }}
-            >
-              <span>Create My Account</span>
-              <Sparkles className="w-5 h-5 group-hover:scale-110 transition-transform" />
-            </button>
-          </div>
-
-          {/* Footer Note */}
-          <div className="text-center mt-6">
-            <p className="text-xs text-gray-500">
-              By creating an account, you agree to our Terms of Service and
-              Privacy Policy
-            </p>
-          </div>
-        </div>
       </div>
     </>
   );
@@ -513,7 +302,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           label: "Followers Count",
           placeholder: "85400",
           type: "number",
-          showIf: (userType) => userType === "influencer", // Optional conditional field logic
+          showIf: (userType) => userType === "influencer",
         },
       ],
     },
@@ -592,7 +381,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   };
 
   useEffect(() => {
-    setResetAll(() => resetAll()); // ✅ Set function reference, not invocation
+    setResetAll(() => resetAll());
   }, [setResetAll]);
 
   // Fix: Always get the latest savedData from useLocalStorage for validation and step checks
@@ -648,6 +437,9 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       (item) => item.index === stepData.index - 1
     );
 
+    // Check if we're in edit mode from review
+    const isEditingFromReview = isFromReview || editingSection || editingField;
+
     return (
       <>
         <ProgressBar currentStep={getCurrentStep()} />
@@ -683,10 +475,19 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
               );
             }
             if (isValid) {
-              if (nextStep) {
-                navigate(`/auth/signup/${nextStep.RoutePath}`);
-              } else {
+              // If we're editing from review, go back to review instead of next step
+              if (isEditingFromReview) {
+                // Clear editing state
+                setEditingSection(null);
+                setEditingField(null);
                 navigate("/auth/signup/review");
+              } else {
+                // Normal flow - go to next step
+                if (nextStep) {
+                  navigate(`/auth/signup/${nextStep.RoutePath}`);
+                } else {
+                  navigate("/auth/signup/review");
+                }
               }
             }
           }}
@@ -702,9 +503,14 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                   : stepData.icon[0]}
               </div>
               <h2 className="text-2xl font-bold text-gray-800 mb-2">
-                {stepData.name}
+                {/* Show "Edit" prefix when in edit mode */}
+                {isEditingFromReview ? `Edit ${stepData.name}` : stepData.name}
               </h2>
-              <p className="text-gray-600">{stepData.slogan}</p>
+              <p className="text-gray-600">
+                {isEditingFromReview
+                  ? `Update your ${stepData.name.toLowerCase()} and return to review`
+                  : stepData.slogan}
+              </p>
             </div>
 
             <div className="space-y-6">
@@ -719,6 +525,12 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                   <div key={input.name} className="relative">
                     <label className="block text-sm font-medium text-gray-700 mb-2">
                       {input.label}
+                      {/* Show indicator if this specific field is being edited */}
+                      {editingField === input.name && (
+                        <span className="ml-2 text-xs text-purple-600 font-medium">
+                          (Editing)
+                        </span>
+                      )}
                     </label>
                     <div className="relative">
                       {input.icon && input.icon}
@@ -728,7 +540,11 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                         placeholder={input.placeholder}
                         className={`w-full ${
                           input.icon ? "pl-12" : "px-4"
-                        } pr-4 py-3 border-2 border-gray-300 rounded-xl focus:border-purple-500 focus:outline-none transition-colors`}
+                        } pr-4 py-3 border-2 rounded-xl focus:border-purple-500 focus:outline-none transition-colors ${
+                          editingField === input.name
+                            ? "border-purple-300 bg-purple-50"
+                            : "border-gray-300"
+                        }`}
                       />
                     </div>
                     {(errors[input.name] || stepErrors[input.name]) && (
@@ -747,30 +563,446 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                 type="button"
                 className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
                 onClick={() => {
-                  if (prevStep) {
-                    navigate(`/auth/signup/${prevStep.RoutePath}`);
+                  if (isEditingFromReview) {
+                    // If editing from review, go back to review without saving
+                    setEditingSection(null);
+                    setEditingField(null);
+                    navigate("/auth/signup/review");
                   } else {
-                    navigate("/auth/signup/userselect");
+                    // Normal back navigation
+                    if (prevStep) {
+                      navigate(`/auth/signup/${prevStep.RoutePath}`);
+                    } else {
+                      navigate("/auth/signup/userselect");
+                    }
                   }
                 }}
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span>Back</span>
+                <span>{isEditingFromReview ? "Cancel" : "Back"}</span>
               </button>
               <button
                 type="submit"
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                <span>Continue</span>
+                <span>
+                  {isEditingFromReview ? "Save & Return" : "Continue"}
+                </span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
+
+            {/* Show editing indicator at the bottom */}
+            {isEditingFromReview && (
+              <div className="mt-6 p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="flex items-center space-x-2">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-sm text-purple-700 font-medium">
+                    Editing from review
+                  </span>
+                </div>
+                <p className="text-xs text-purple-600 mt-1">
+                  Your changes will be saved when you click "Save & Return"
+                </p>
+              </div>
+            )}
           </div>
         </form>
       </>
     );
   };
-  
+
+  const ReviewStep = (
+    <>
+      <div className="min-h-screen bg-gray-50">
+        {/* Header */}
+        <div className="bg-white border-b border-gray-200">
+          <div className="max-w-4xl mx-auto px-6 py-8">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-12 h-12 bg-purple-600 rounded-lg mb-4">
+                <Eye className="w-6 h-6 text-white" />
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900 mb-2">
+                Review Account Details
+              </h1>
+              <p className="text-gray-600 max-w-md mx-auto">
+                Click on any field to edit it directly, or use the section edit
+                buttons.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <div className="max-w-6xl mx-auto px-6 py-8">
+          {/* Progress Indicator */}
+          <div className="mb-8">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-sm font-medium text-gray-700">
+                Setup Progress
+              </span>
+              <div className="flex items-center space-x-2">
+                <Check className="w-4 h-4 text-green-600" />
+                <span className="text-sm font-semibold text-green-600">
+                  Complete
+                </span>
+              </div>
+            </div>
+            <div className="w-full bg-gray-200 rounded-full h-1.5">
+              <div className="bg-green-600 h-1.5 rounded-full w-full transition-all duration-500"></div>
+            </div>
+          </div>
+
+          {/* Main Content */}
+          <div className="grid lg:grid-cols-3 gap-6">
+            {/* Left Column - Account & Security */}
+            <div className="lg:col-span-1 space-y-6">
+              {/* Account Information */}
+              <div
+                className={`bg-white rounded-lg border shadow-sm transition-all duration-200 ${
+                  editingSection === "account"
+                    ? "border-purple-300 ring-2 ring-purple-100"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Account Information
+                  </h3>
+                </div>
+                <div className="px-6 py-4 space-y-4">
+                  {/* Account Type Field - Navigate to userselect */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group min-h-[44px]"
+                    onClick={() => {
+                      setEditingSection("account");
+                      setEditingField("userType");
+                      navigate("/auth/signup/userselect", {
+                        state: {
+                          editingSection: "account",
+                          editingField: "userType",
+                          fromReview: true,
+                        },
+                      });
+                    }}
+                  >
+                    <span className="text-sm text-gray-600 group-hover:text-gray-800 mb-1 sm:mb-0">
+                      Account Type
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 capitalize flex items-center group-hover:text-purple-600 break-words">
+                      <Building className="w-4 h-4 mr-1.5 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                      <span className="truncate">{watch("userType")}</span>
+                    </span>
+                  </div>
+
+                  {/* Username Field */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group min-h-[44px]"
+                    onClick={() => handleEditSection("basic-info", "username")}
+                  >
+                    <span className="text-sm text-gray-600 group-hover:text-gray-800 mb-1 sm:mb-0">
+                      Username
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 flex items-center group-hover:text-purple-600 break-words">
+                      <AtSign className="w-4 h-4 mr-1.5 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                      <span className="truncate max-w-[160px]">
+                        {watch("username")}
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* Email Field */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group min-h-[44px]"
+                    onClick={() => handleEditSection("basic-info", "email")}
+                  >
+                    <span className="text-sm text-gray-600 group-hover:text-gray-800 mb-1 sm:mb-0">
+                      Email
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 flex items-center group-hover:text-purple-600 break-words">
+                      <Mail className="w-4 h-4 mr-1.5 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                      <span className="truncate max-w-[160px]">
+                        {watch("email")}
+                      </span>
+                    </span>
+                  </div>
+
+                  {/* Social Handle Field */}
+                  <div
+                    className="flex flex-col sm:flex-row sm:items-center sm:justify-between py-2 px-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group min-h-[44px]"
+                    onClick={() =>
+                      handleEditSection("basic-info", "socialHandle")
+                    }
+                  >
+                    <span className="text-sm text-gray-600 group-hover:text-gray-800 mb-1 sm:mb-0">
+                      Social Handle
+                    </span>
+                    <span className="text-sm font-medium text-gray-900 flex items-center group-hover:text-purple-600 break-words">
+                      <Sparkles className="w-4 h-4 mr-1.5 text-gray-400 group-hover:text-purple-500 flex-shrink-0" />
+                      <span className="truncate max-w-[160px]">
+                        {watch("socialHandle")}
+                      </span>
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Security Status */}
+              <div
+                className={`bg-white rounded-lg border shadow-sm transition-all duration-200 ${
+                  editingSection === "security"
+                    ? "border-purple-300 ring-2 ring-purple-100"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Security
+                  </h3>
+                </div>
+                <div className="px-6 py-4">
+                  <div
+                    className="flex items-center space-x-3 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                    onClick={() => handleEditSection("security", "password")}
+                  >
+                    <div className="flex-shrink-0">
+                      <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center group-hover:bg-purple-100">
+                        <Shield className="w-4 h-4 text-green-600 group-hover:text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-900 group-hover:text-purple-600 truncate">
+                        Password Secured
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        Click to change password
+                      </p>
+                    </div>
+                    <Check className="w-5 h-5 text-green-600 group-hover:text-purple-600 flex-shrink-0" />
+                    <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Right Column - Profile Details */}
+            <div className="lg:col-span-2">
+              <div
+                className={`bg-white rounded-lg border shadow-sm transition-all duration-200 ${
+                  editingSection === "profile"
+                    ? "border-purple-300 ring-2 ring-purple-100"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="px-6 py-4 border-b border-gray-200">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    Profile Details
+                  </h3>
+                </div>
+
+                <div className="px-6 py-6">
+                  {/* Profile Header */}
+                  <div className="flex flex-col sm:flex-row sm:items-start space-y-4 sm:space-y-0 sm:space-x-4 mb-6 pb-6 border-b border-gray-200">
+                    <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <User className="w-8 h-8 text-gray-400" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <h4 className="text-xl font-semibold text-gray-900 mb-1 break-words">
+                        @{watch("username")}
+                      </h4>
+                      <div className="flex flex-col sm:flex-row sm:items-center sm:space-x-4 space-y-2 sm:space-y-0 text-sm text-gray-600 mb-2">
+                        {/* Clickable Category */}
+                        <span
+                          className="flex items-center hover:text-purple-600 cursor-pointer transition-colors group break-words"
+                          onClick={() =>
+                            handleEditSection("profile-details", "category")
+                          }
+                        >
+                          <Tag className="w-4 h-4 mr-1 group-hover:text-purple-500 flex-shrink-0" />
+                          <span className="truncate">{watch("category")}</span>
+                          <ArrowRight className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </span>
+                        {/* Clickable Location */}
+                        <span
+                          className="flex items-center hover:text-purple-600 cursor-pointer transition-colors group break-words"
+                          onClick={() =>
+                            handleEditSection("profile-details", "location")
+                          }
+                        >
+                          <MapPin className="w-4 h-4 mr-1 group-hover:text-purple-500 flex-shrink-0" />
+                          <span className="truncate">{watch("location")}</span>
+                          <ArrowRight className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </span>
+                      </div>
+                      {/* Clickable Website */}
+                      {watch("website") && (
+                        <div
+                          className="text-sm text-purple-600 hover:text-purple-700 flex items-center cursor-pointer group break-all"
+                          onClick={() =>
+                            handleEditSection("profile-details", "website")
+                          }
+                        >
+                          <Globe className="w-4 h-4 mr-1 flex-shrink-0" />
+                          <span className="truncate">{watch("website")}</span>
+                          <ArrowRight className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0" />
+                        </div>
+                      )}
+                    </div>
+                    {/* Clickable Followers (if influencer) */}
+                    {watch("userType") === "influencer" && (
+                      <div
+                        className="text-center sm:text-right cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors group flex-shrink-0"
+                        onClick={() =>
+                          handleEditSection("profile-details", "followers")
+                        }
+                      >
+                        <div className="flex items-center justify-center sm:justify-end text-sm text-gray-900 font-medium group-hover:text-purple-600">
+                          <Users className="w-4 h-4 mr-1" />
+                          <span className="whitespace-nowrap">
+                            {watch("followers")
+                              ? parseInt(watch("followers")).toLocaleString()
+                              : 0}
+                          </span>
+                          <ArrowRight className="w-3 h-3 ml-1 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
+                        <p className="text-xs text-gray-500">Followers</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Clickable Bio */}
+                  <div
+                    className="mb-6 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                    onClick={() => handleEditSection("bio-interests", "bio")}
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="text-sm font-medium text-gray-900 group-hover:text-purple-600">
+                        About
+                      </h5>
+                      <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-500 flex-shrink-0" />
+                    </div>
+                    <p className="text-sm text-gray-700 leading-relaxed group-hover:text-gray-900 break-words">
+                      {watch("bio")}
+                    </p>
+                  </div>
+
+                  {/* Clickable Interests */}
+                  {Array.isArray(watch("interests")) &&
+                    watch("interests").length > 0 && (
+                      <div
+                        className="mb-6 p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                        onClick={() =>
+                          handleEditSection("bio-interests", "interests")
+                        }
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="text-sm font-medium text-gray-900 group-hover:text-purple-600">
+                            Interests
+                          </h5>
+                          <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-500 flex-shrink-0" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {watch("interests").map((interest, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-gray-100 text-gray-700 rounded-full text-sm font-medium group-hover:bg-purple-100 group-hover:text-purple-700 transition-colors break-words"
+                            >
+                              {interest}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                  {/* Clickable Looking For */}
+                  {Array.isArray(watch("lookingFor")) &&
+                    watch("lookingFor").length > 0 && (
+                      <div
+                        className="p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors group"
+                        onClick={() =>
+                          handleEditSection("bio-interests", "lookingFor")
+                        }
+                      >
+                        <div className="flex items-center justify-between mb-3">
+                          <h5 className="text-sm font-medium text-gray-900 group-hover:text-purple-600">
+                            Collaboration Interests
+                          </h5>
+                          <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-500 flex-shrink-0" />
+                        </div>
+                        <div className="flex flex-wrap gap-2">
+                          {watch("lookingFor").map((item, index) => (
+                            <span
+                              key={index}
+                              className="px-3 py-1 bg-purple-50 text-purple-700 rounded-full text-sm font-medium group-hover:bg-purple-100 transition-colors flex items-center break-words"
+                            >
+                              {item}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Action Buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 mt-8">
+            <button
+              onClick={() => {
+                setEditingSection(null);
+                setEditingField(null);
+                navigate("/auth/signup/security");
+              }}
+              className="flex-1 px-6 py-3 bg-white border border-gray-300 text-gray-700 font-medium rounded-lg hover:bg-gray-50 hover:border-gray-400 transition-all duration-200 flex items-center justify-center space-x-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back to Edit</span>
+            </button>
+            <button
+              onClick={async () => {
+                const isValid = await validateStep(signUpSchema);
+                if (!isValid) {
+                  console.log(
+                    "Create Account (ReviewStep) errors:",
+                    stepErrors
+                  );
+                }
+                if (isValid) {
+                  console.log("Form submitted:", getSavedData());
+                  navigate("/auth/login", { state: { fromSignUp: true } });
+                }
+              }}
+              className="flex-2 px-8 py-3 bg-purple-600 text-white font-semibold rounded-lg hover:bg-purple-700 transition-all duration-200 flex items-center justify-center space-x-2 shadow-sm"
+            >
+              <span>Create Account</span>
+              <CheckCircle className="w-4 h-4" />
+            </button>
+          </div>
+
+          {/* Footer */}
+          <div className="text-center mt-8 pt-6 border-t border-gray-200">
+            <p className="text-sm text-gray-500">
+              By creating an account, you agree to our{" "}
+              <a
+                href="#"
+                className="text-purple-600 hover:text-purple-700 font-medium"
+              >
+                Terms of Service
+              </a>{" "}
+              and{" "}
+              <a
+                href="#"
+                className="text-purple-600 hover:text-purple-700 font-medium"
+              >
+                Privacy Policy
+              </a>
+            </p>
+          </div>
+        </div>
+      </div>
+    </>
+  );
+
   return (
     <Routes>
       <Route

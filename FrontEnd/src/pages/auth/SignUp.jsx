@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
   Routes,
   Route,
@@ -113,6 +113,18 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     }
   }, [editingSectionFromState, editingFieldFromState]);
 
+  // Add this useEffect to your SignUp component, after your existing useEffects
+
+  useEffect(() => {
+    // Clear editing states when returning from UserSelect
+    if (state?.clearEditingStates) {
+      setEditingSection(null);
+      setEditingField(null);
+      // Clear the navigation state by replacing the current history entry
+      window.history.replaceState({}, "", location.pathname);
+    }
+  }, [state?.clearEditingStates]);
+
   const getCurrentStep = () => {
     const path = location.pathname.split("/").pop();
     switch (path) {
@@ -182,50 +194,142 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     return true;
   };
 
-  // Add this helper function to handle edit navigation
-  const handleEditSection = (sectionType, fieldName = null) => {
-    setEditingSection(sectionType);
-    setEditingField(fieldName);
+  const getFieldsForUserType = (userType) => {
+    const allFields = data.reduce((acc, step) => {
+      step.inputs.forEach((input) => {
+        if (!input.showIf || input.showIf(userType)) {
+          acc.push(input.name);
+        }
+      });
+      return acc;
+    }, []);
 
-    // Navigate to appropriate step based on field being edited
-    const fieldToStepMap = {
-      username: "basic-info",
-      email: "basic-info",
-      socialHandle: "basic-info",
-      category: "profile-details",
-      location: "profile-details",
-      website: "profile-details",
-      followers: "profile-details",
-      bio: "bio-interests",
-      interests: "bio-interests",
-      lookingFor: "bio-interests",
-      password: "security",
-      confirmPassword: "security",
-    };
-
-    const targetStep = fieldToStepMap[fieldName] || sectionType;
-    navigate(`/auth/signup/${targetStep}`, {
-      state: {
-        editingSection: sectionType,
-        editingField: fieldName,
-        fromReview: true,
-      },
-    });
+    // Always include basic fields
+    return [
+      "userType",
+      "username",
+      "email",
+      "password",
+      "confirmPassword",
+      ...allFields,
+    ];
   };
 
-  const UserSelectStep = (
-    <>
-      <ProgressBar currentStep={getCurrentStep()} />
-      <div className="pt-20">
-        <UserSelect
-          colors={colors}
-          userType={userType}
-          setUserType={setUserType}
-          setCurrentPage={(page) => navigate(`/auth/signup/${page}`)}
-        />
-      </div>
-    </>
-  );
+  const cleanDataForUserType = (formData, userType) => {
+    const allowedFields = getFieldsForUserType(userType);
+    const cleanedData = {};
+
+    allowedFields.forEach((field) => {
+      if (formData[field] !== undefined) {
+        cleanedData[field] = formData[field];
+      }
+    });
+
+    return cleanedData;
+  };
+
+  const handleUserTypeChange = (newUserType) => {
+    const currentData = getValues();
+
+    // Reset ALL form fields to their initial defaults first
+    Object.keys(initialDefaultValues).forEach((key) => {
+      setValue(key, initialDefaultValues[key]);
+    });
+
+    // Set the new user type first
+    setValue("userType", newUserType);
+    setUserType(newUserType);
+
+    // Get allowed fields for the new user type
+    const allowedFields = getFieldsForUserType(newUserType);
+
+    // Then set only the allowed fields with their current values
+    const cleanedData = { userType: newUserType };
+    allowedFields.forEach((field) => {
+      if (field === "userType") return; // Skip since we already set it
+
+      if (currentData[field] !== undefined && currentData[field] !== "") {
+        setValue(field, currentData[field]);
+        cleanedData[field] = currentData[field];
+      } else {
+        cleanedData[field] = initialDefaultValues[field];
+      }
+    });
+
+    setSignupFormData(cleanedData);
+
+    // Force a re-render to ensure conditional fields appear
+    setTimeout(() => {
+      // This ensures that the form re-evaluates which fields should be shown
+      const updatedData = getValues();
+      setSignupFormData(updatedData);
+    }, 0);
+  };
+
+  useEffect(() => {
+    if (userType && userType !== watch("userType")) {
+      setValue("userType", userType);
+    }
+  }, [userType, watch, setValue]);
+  // Get missing fields for current user type
+  const getMissingFields = (currentUserType) => {
+    const savedData = getSavedData();
+    const missingFields = [];
+
+    data.forEach((step) => {
+      step.inputs?.forEach((input) => {
+        if (input.showIf && !input.showIf(currentUserType)) return;
+
+        const value = savedData[input.name];
+        const isEmpty =
+          !value ||
+          value === "" ||
+          (Array.isArray(value) && value.length === 0);
+
+        if (isEmpty) {
+          missingFields.push({
+            field: input.name,
+            step: step.RoutePath,
+            stepIndex: step.index,
+            input: input,
+          });
+        }
+      });
+    });
+
+    return missingFields;
+  };
+
+  const getNextRequiredStep = (currentUserType) => {
+    const missingFields = getMissingFields(currentUserType);
+    console.log("getNextRequiredStep");
+    if (missingFields.length === 0) return null;
+
+    const fieldsByStep = missingFields.reduce((acc, field) => {
+      if (!acc[field.step]) acc[field.step] = [];
+      acc[field.step].push(field);
+      console.log("acc", acc);
+      return acc;
+    }, {});
+
+    const stepKeys = Object.keys(fieldsByStep);
+    const sortedSteps = stepKeys.sort((a, b) => {
+      const stepA = data.find((s) => s.RoutePath === a);
+      const stepB = data.find((s) => s.RoutePath === b);
+      return stepA.index - stepB.index;
+    });
+
+    return {
+      step: sortedSteps[0],
+      fields: fieldsByStep[sortedSteps[0]],
+      isLastStep: sortedSteps.length === 1,
+    };
+  };
+
+
+  const canGoToReview = (currentUserType) => {
+    return getMissingFields(currentUserType).length === 0;
+  };
 
   const data = [
     {
@@ -287,6 +391,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
             <Globe className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
           ),
           type: "url",
+          showIf: (userType) => userType === "company",
         },
         {
           name: "location",
@@ -371,7 +476,54 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     },
   ];
 
-  // Place resetAll before useEffect so it can be registered
+  const fieldToStepMap = data.reduce((acc, step) => {
+    step.inputs.forEach((input) => {
+      acc[input.name] = step.RoutePath;
+    });
+    return acc;
+  }, {});
+
+  const handleEditSection = (sectionType, fieldName = null) => {
+    if (fieldName) {
+      const stepData = data.find((step) =>
+        step.inputs?.some((input) => input.name === fieldName)
+      );
+      const inputData = stepData?.inputs?.find(
+        (input) => input.name === fieldName
+      );
+
+      if (inputData?.showIf && !inputData.showIf(watch("userType"))) {
+        return;
+      }
+    }
+
+    setEditingSection(sectionType);
+    setEditingField(fieldName);
+
+    const targetStep = fieldToStepMap[fieldName] || sectionType;
+
+    const currentUserType = watch("userType");
+    const requiredFieldsForStep =
+      data
+        .find((step) => step.RoutePath === targetStep)
+        ?.inputs?.filter(
+          (input) =>
+            (!input.showIf || input.showIf(currentUserType)) &&
+            !getValues()[input.name]
+        )
+        ?.map((input) => input.name) || [];
+
+    navigate(`/auth/signup/${targetStep}`, {
+      state: {
+        editingSection: sectionType,
+        editingField: fieldName,
+        fromReview: true,
+        requiredFields: requiredFieldsForStep,
+      },
+    });
+  };
+
+
   const resetAll = () => {
     setSignupFormData({});
     setUserType("");
@@ -384,12 +536,14 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     setResetAll(() => resetAll());
   }, [setResetAll]);
 
-  // Fix: Always get the latest savedData from useLocalStorage for validation and step checks
+
   const getSavedData = () => signupFormData || {};
 
   // Helper to check if a step is completed (use latest data)
   const isStepCompleted = (step) => {
     const data = getSavedData();
+    const currentUserType = data.userType;
+
     switch (step) {
       case "basic-info":
         return !!(
@@ -399,12 +553,18 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           data.socialHandle
         );
       case "profile-details":
+        const profileRequiredFields = ["category", "location"];
+        if (currentUserType === "influencer") {
+          profileRequiredFields.push("followers");
+        }
+        if (currentUserType === "company") {
+          profileRequiredFields.push("website");
+        }
         return (
           isStepCompleted("basic-info") &&
-          data.category &&
-          data.location &&
-          (data.userType === "company" ||
-            (data.userType === "influencer" && data.followers !== undefined))
+          profileRequiredFields.every(
+            (field) => data[field] !== undefined && data[field] !== ""
+          )
         );
       case "bio-interests":
         return (
@@ -428,6 +588,20 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     }
   };
 
+  const UserSelectStep = (
+    <>
+      <ProgressBar currentStep={getCurrentStep()} />
+      <div className="pt-20">
+        <UserSelect
+          colors={colors}
+          userType={userType}
+          setUserType={handleUserTypeChange}
+          setCurrentPage={(page) => navigate(`/auth/signup/${page}`)}
+        />
+      </div>
+    </>
+  );
+
   const signInStepsFunct = (WholeData, route) => {
     const stepData = WholeData.find((item) => item.RoutePath === route);
     const nextStep = WholeData.find(
@@ -437,60 +611,134 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       (item) => item.index === stepData.index - 1
     );
 
-    // Check if we're in edit mode from review
     const isEditingFromReview = isFromReview || editingSection || editingField;
+    const currentUserType = watch("userType");
+
+    // Get required fields for this step based on state or missing fields
+    const requiredFieldsFromState = state?.requiredFields || [];
+    const isLastRequiredStep = state?.isLastRequiredStep || false;
+
+    const getFieldsToShow = () => {
+      // Always get the most current user type from watch() for reactivity
+      const currentUserType = watch("userType");
+
+      if (editingField) {
+        // Special case for password editing - show both password fields
+        if (editingField === "password" && stepData.RoutePath === "security") {
+          return stepData.inputs?.filter(
+            (input) =>
+              input.name === "password" || input.name === "confirmPassword"
+          );
+        }
+        // Show only the specific field being edited for other cases
+        return stepData.inputs?.filter((input) => input.name === editingField);
+      }
+
+      if (requiredFieldsFromState.length > 0) {
+        // Show only required fields from navigation state
+        return stepData.inputs?.filter(
+          (input) =>
+            requiredFieldsFromState.includes(input.name) &&
+            (!input.showIf || input.showIf(currentUserType))
+        );
+      }
+
+      if (isFromReview && !editingField) {
+        // Show empty required fields when coming from review
+        return stepData.inputs?.filter((input) => {
+          if (input.showIf && !input.showIf(currentUserType)) return false;
+          const value = watch(input.name);
+          return (
+            !value ||
+            value === "" ||
+            (Array.isArray(value) && value.length === 0)
+          );
+        });
+      }
+
+      // Default: show all applicable fields for current user type
+      return stepData.inputs?.filter((input) => {
+        // Always evaluate showIf with the current user type
+        if (typeof input.showIf === "function") {
+          return input.showIf(currentUserType);
+        }
+        return true;
+      });
+    };
+
+    const handleFormSubmit = async (e) => {
+      e.preventDefault();
+
+      stepData.inputs?.forEach((input) => {
+        if (input.isArrayInput) {
+          const raw = getValues(input.name);
+          const arr = Array.isArray(raw)
+            ? raw
+            : typeof raw === "string"
+            ? raw
+                .split(",")
+                .map((item) => item.trim())
+                .filter(Boolean)
+            : [];
+          setValue(input.name, arr);
+        }
+      });
+
+      const inputNames = stepData.inputs.map((i) => i.name);
+      const dynamicSchema = createStepSchema(inputNames);
+      const isValid = await validateStep(dynamicSchema);
+
+      if (!isValid) {
+        console.log(`Continue (${stepData.elementName}) errors:`, stepErrors);
+        return;
+      }
+
+      if (isEditingFromReview) {
+        setEditingSection(null);
+        setEditingField(null);
+        navigate("/auth/signup/review");
+      } else if (isLastRequiredStep || canGoToReview(currentUserType)) {
+        navigate("/auth/signup/review");
+      } else {
+        const nextRequired = getNextRequiredStep(currentUserType);
+        if (nextRequired) {
+          navigate(`/auth/signup/${nextRequired.step}`, {
+            state: {
+              requiredFields: nextRequired.fields.map((f) => f.field),
+              isLastRequiredStep: nextRequired.isLastStep,
+            },
+          });
+        } else if (nextStep) {
+          navigate(`/auth/signup/${nextStep.RoutePath}`);
+        } else {
+          navigate("/auth/signup/review");
+        }
+      }
+    };
+
+    const getButtonText = () => {
+      if (isEditingFromReview) return "Save & Return";
+      if (isLastRequiredStep || canGoToReview(currentUserType))
+        return "Go to Review";
+      return "Continue";
+    };
+
+    const getBackButtonText = () => {
+      if (isEditingFromReview) return "Cancel";
+      if (route === "basic-info" && requiredFieldsFromState.length > 0)
+        return "Cancel";
+      return "Back";
+    };
+
+    // Replace the existing input filtering in the JSX with:
+    const fieldsToShow = getFieldsToShow();
 
     return (
       <>
         <ProgressBar currentStep={getCurrentStep()} />
         <form
-          onSubmit={async (e) => {
-            e.preventDefault();
-
-            stepData.inputs?.forEach((input) => {
-              if (input.isArrayInput) {
-                const raw = getValues(input.name);
-
-                const arr = Array.isArray(raw)
-                  ? raw
-                  : typeof raw === "string"
-                  ? raw
-                      .split(",")
-                      .map((item) => item.trim())
-                      .filter(Boolean)
-                  : [];
-
-                setValue(input.name, arr);
-              }
-            });
-
-            const inputNames = stepData.inputs.map((i) => i.name);
-            const dynamicSchema = createStepSchema(inputNames);
-            const isValid = await validateStep(dynamicSchema);
-
-            if (!isValid) {
-              console.log(
-                `Continue (${stepData.elementName}) errors:`,
-                stepErrors
-              );
-            }
-            if (isValid) {
-              // If we're editing from review, go back to review instead of next step
-              if (isEditingFromReview) {
-                // Clear editing state
-                setEditingSection(null);
-                setEditingField(null);
-                navigate("/auth/signup/review");
-              } else {
-                // Normal flow - go to next step
-                if (nextStep) {
-                  navigate(`/auth/signup/${nextStep.RoutePath}`);
-                } else {
-                  navigate("/auth/signup/review");
-                }
-              }
-            }
-          }}
+          key={watch("userType")}
+          onSubmit={handleFormSubmit}
           className="min-h-screen bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-100 flex items-center justify-center p-4 pt-20"
         >
           <div className="bg-white rounded-3xl shadow-2xl p-8 w-full max-w-md">
@@ -514,48 +762,41 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
             </div>
 
             <div className="space-y-6">
-              {stepData.inputs
-                ?.filter((input) => {
-                  if (typeof input.showIf === "function") {
-                    return input.showIf(watch("userType"));
-                  }
-                  return true;
-                })
-                .map((input) => (
-                  <div key={input.name} className="relative">
-                    <label className="block text-sm font-medium text-gray-700 mb-2">
-                      {input.label}
-                      {/* Show indicator if this specific field is being edited */}
-                      {editingField === input.name && (
-                        <span className="ml-2 text-xs text-purple-600 font-medium">
-                          (Editing)
-                        </span>
-                      )}
-                    </label>
-                    <div className="relative">
-                      {input.icon && input.icon}
-                      <input
-                        {...register(input.name, { required: true })}
-                        type={input.type || "text"}
-                        placeholder={input.placeholder}
-                        className={`w-full ${
-                          input.icon ? "pl-12" : "px-4"
-                        } pr-4 py-3 border-2 rounded-xl focus:border-purple-500 focus:outline-none transition-colors ${
-                          editingField === input.name
-                            ? "border-purple-300 bg-purple-50"
-                            : "border-gray-300"
-                        }`}
-                      />
-                    </div>
-                    {(errors[input.name] || stepErrors[input.name]) && (
-                      <span className="text-red-500 text-xs absolute top-0 right-0">
-                        {errors[input.name]?.message ||
-                          stepErrors[input.name]?.message ||
-                          `${input.label} is required`}
+              {fieldsToShow?.map((input) => (
+                <div key={input.name} className="relative">
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    {input.label}
+                    {/* Show indicator if this specific field is being edited */}
+                    {editingField === input.name && (
+                      <span className="ml-2 text-xs text-purple-600 font-medium">
+                        (Editing)
                       </span>
                     )}
+                  </label>
+                  <div className="relative">
+                    {input.icon && input.icon}
+                    <input
+                      {...register(input.name, { required: true })}
+                      type={input.type || "text"}
+                      placeholder={input.placeholder}
+                      className={`w-full ${
+                        input.icon ? "pl-12" : "px-4"
+                      } pr-4 py-3 border-2 rounded-xl focus:border-purple-500 focus:outline-none transition-colors ${
+                        editingField === input.name
+                          ? "border-purple-300 bg-purple-50"
+                          : "border-gray-300"
+                      }`}
+                    />
                   </div>
-                ))}
+                  {(errors[input.name] || stepErrors[input.name]) && (
+                    <span className="text-red-500 text-xs absolute top-0 right-0">
+                      {errors[input.name]?.message ||
+                        stepErrors[input.name]?.message ||
+                        `${input.label} is required`}
+                    </span>
+                  )}
+                </div>
+              ))}
             </div>
 
             <div className="flex space-x-4 mt-8">
@@ -579,15 +820,13 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                 }}
               >
                 <ArrowLeft className="w-5 h-5" />
-                <span>{isEditingFromReview ? "Cancel" : "Back"}</span>
+                <span>{getBackButtonText()}</span>
               </button>
               <button
                 type="submit"
                 className="flex-1 px-6 py-3 bg-gradient-to-r from-purple-500 to-blue-500 text-white font-semibold rounded-xl hover:shadow-lg transition-all duration-300 flex items-center justify-center space-x-2"
               >
-                <span>
-                  {isEditingFromReview ? "Save & Return" : "Continue"}
-                </span>
+                <span>{getButtonText()}</span>
                 <ArrowRight className="w-5 h-5" />
               </button>
             </div>
@@ -659,7 +898,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
               {/* Account Information */}
               <div
                 className={`bg-white rounded-lg border shadow-sm transition-all duration-200 ${
-                  editingSection === "account"
+                  editingSection === "account" && editingField
                     ? "border-purple-300 ring-2 ring-purple-100"
                     : "border-gray-200"
                 }`}
@@ -924,7 +1163,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                       >
                         <div className="flex items-center justify-between mb-3">
                           <h5 className="text-sm font-medium text-gray-900 group-hover:text-purple-600">
-                            Collaboration Interests
+                            Looking For
                           </h5>
                           <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity text-purple-500 flex-shrink-0" />
                         </div>

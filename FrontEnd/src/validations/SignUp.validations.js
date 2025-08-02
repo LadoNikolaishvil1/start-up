@@ -84,6 +84,35 @@ const fieldSchemas = {
     "any.required": "Looking For is required.",
   }),
 
+  hobbies: Joi.alternatives().conditional(Joi.ref("$userType"), {
+    is: "influencer",
+    then: Joi.array().items(Joi.string()).required().messages({
+      "array.base": "Hobbies must be a list of text values.",
+      "any.required": "Hobbies are required.",
+    }),
+    otherwise: Joi.any().strip(),
+  }),
+
+  employer: Joi.alternatives().conditional(Joi.ref("$userType"), {
+    is: "company",
+    then: Joi.string().required().messages({
+      "string.base": "Employer must be a text value.",
+      "string.empty": "Employer is required.",
+      "any.required": "Employer is required.",
+    }),
+    otherwise: Joi.any().strip(),
+  }),
+
+  securityKey: Joi.string().when(Joi.ref("$userType"), {
+    is: "influencer",
+    then: Joi.string().required().messages({
+      "string.base": "Security Key must be a text value.",
+      "string.empty": "Security Key is required.",
+      "any.required": "Security Key is required.",
+    }),
+    otherwise: Joi.any().strip(),
+  }),
+
   followers: Joi.alternatives().conditional(Joi.ref("$userType"), {
     is: "influencer",
     then: Joi.number().integer().min(0).required().messages({

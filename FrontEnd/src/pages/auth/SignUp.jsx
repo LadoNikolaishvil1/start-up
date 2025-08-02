@@ -36,54 +36,6 @@ import {
 import { useLocalStorage } from "usehooks-ts";
 import ErrorPage from "../errorPage.jsx";
 
-const initialDefaultValues = {
-  userType: "",
-  username: "",
-  email: "",
-  password: "",
-  confirmPassword: "",
-  socialHandle: "",
-  category: "",
-  bio: "",
-  location: "",
-  website: "",
-  interests: [],
-  lookingFor: [],
-  followers: "",
-};
-
-// Progress Bar Component
-const ProgressBar = ({ currentStep, totalSteps = 5 }) => {
-  const progress = (currentStep / totalSteps) * 100;
-
-  const stepNames = {
-    1: "User Type",
-    2: "Basic Info",
-    3: "Profile Details",
-    4: "Bio & Interests",
-    5: "Security & Review",
-  };
-
-  return (
-    <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100">
-      <div className="relative h-2 bg-gray-100">
-        <div
-          className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-700 ease-out rounded-r-full"
-          style={{ width: `${progress}%` }}
-        />
-      </div>
-      <div className="px-4 py-3 flex justify-between items-center">
-        <span className="text-sm font-medium text-gray-700">
-          {stepNames[currentStep]}
-        </span>
-        <span className="text-sm text-gray-500">
-          {currentStep} of {totalSteps}
-        </span>
-      </div>
-    </div>
-  );
-};
-
 const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -96,240 +48,16 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   const [editingSection, setEditingSection] = useState(null);
   const [editingField, setEditingField] = useState(null);
   const [stepErrors, setStepErrors] = useState({});
+  const [isFromEditedUserType, setIsFromEditedUserType] = useLocalStorage(
+    "isFromEditedUserType",
+    false
+  );
 
   // Get state from location for edit context
   const { state } = location;
   const isFromReview = state?.fromReview;
   const editingSectionFromState = state?.editingSection;
   const editingFieldFromState = state?.editingField;
-
-  // Set editing state from location state when navigating from review
-  useEffect(() => {
-    if (editingSectionFromState) {
-      setEditingSection(editingSectionFromState);
-    }
-    if (editingFieldFromState) {
-      setEditingField(editingFieldFromState);
-    }
-  }, [editingSectionFromState, editingFieldFromState]);
-
-  // Add this useEffect to your SignUp component, after your existing useEffects
-
-  useEffect(() => {
-    // Clear editing states when returning from UserSelect
-    if (state?.clearEditingStates) {
-      setEditingSection(null);
-      setEditingField(null);
-      // Clear the navigation state by replacing the current history entry
-      window.history.replaceState({}, "", location.pathname);
-    }
-  }, [state?.clearEditingStates]);
-
-  const getCurrentStep = () => {
-    const path = location.pathname.split("/").pop();
-    switch (path) {
-      case "userselect":
-        return 1;
-      case "basic-info":
-        return 2;
-      case "profile-details":
-        return 3;
-      case "bio-interests":
-        return 4;
-      case "security":
-        return 5;
-      case "review":
-        return 5;
-      default:
-        return 1;
-    }
-  };
-
-  const {
-    register,
-    setValue,
-    watch,
-    getValues,
-    formState: { errors },
-  } = useForm({
-    defaultValues: {
-      ...initialDefaultValues,
-      ...signupFormData,
-    },
-  });
-
-  useEffect(() => {
-    if (userType && userType !== watch("userType")) {
-      setValue("userType", userType);
-    }
-  }, [userType, watch, setValue]);
-
-  useEffect(() => {
-    const subscription = watch((value) => {
-      setSignupFormData(value);
-    });
-    return () => subscription.unsubscribe();
-  }, [watch, setSignupFormData]);
-
-  // --- Step-wise validation function with allowUnknown and context for userType ---
-  const validateStep = async (schema) => {
-    const values = getValues();
-    const { error } = schema.validate(values, {
-      abortEarly: false,
-      allowUnknown: true,
-      convert: true,
-      context: { userType: values.userType },
-    });
-
-    if (error) {
-      const formatted = error.details.reduce((acc, curr) => {
-        acc[curr.path[0]] = { message: curr.message };
-        return acc;
-      }, {});
-      setStepErrors(formatted);
-      console.log("Validation errors:", formatted);
-      return false;
-    }
-    setStepErrors({});
-    return true;
-  };
-
-  const getFieldsForUserType = (userType) => {
-    const allFields = data.reduce((acc, step) => {
-      step.inputs.forEach((input) => {
-        if (!input.showIf || input.showIf(userType)) {
-          acc.push(input.name);
-        }
-      });
-      return acc;
-    }, []);
-
-    // Always include basic fields
-    return [
-      "userType",
-      "username",
-      "email",
-      "password",
-      "confirmPassword",
-      ...allFields,
-    ];
-  };
-
-  const cleanDataForUserType = (formData, userType) => {
-    const allowedFields = getFieldsForUserType(userType);
-    const cleanedData = {};
-
-    allowedFields.forEach((field) => {
-      if (formData[field] !== undefined) {
-        cleanedData[field] = formData[field];
-      }
-    });
-
-    return cleanedData;
-  };
-
-  const handleUserTypeChange = (newUserType) => {
-    const currentData = getValues();
-
-    // Reset ALL form fields to their initial defaults first
-    Object.keys(initialDefaultValues).forEach((key) => {
-      setValue(key, initialDefaultValues[key]);
-    });
-
-    // Set the new user type first
-    setValue("userType", newUserType);
-    setUserType(newUserType);
-
-    // Get allowed fields for the new user type
-    const allowedFields = getFieldsForUserType(newUserType);
-
-    // Then set only the allowed fields with their current values
-    const cleanedData = { userType: newUserType };
-    allowedFields.forEach((field) => {
-      if (field === "userType") return; // Skip since we already set it
-
-      if (currentData[field] !== undefined && currentData[field] !== "") {
-        setValue(field, currentData[field]);
-        cleanedData[field] = currentData[field];
-      } else {
-        cleanedData[field] = initialDefaultValues[field];
-      }
-    });
-
-    setSignupFormData(cleanedData);
-
-    // Force a re-render to ensure conditional fields appear
-    setTimeout(() => {
-      // This ensures that the form re-evaluates which fields should be shown
-      const updatedData = getValues();
-      setSignupFormData(updatedData);
-    }, 0);
-  };
-
-  useEffect(() => {
-    if (userType && userType !== watch("userType")) {
-      setValue("userType", userType);
-    }
-  }, [userType, watch, setValue]);
-  // Get missing fields for current user type
-  const getMissingFields = (currentUserType) => {
-    const savedData = getSavedData();
-    const missingFields = [];
-
-    data.forEach((step) => {
-      step.inputs?.forEach((input) => {
-        if (input.showIf && !input.showIf(currentUserType)) return;
-
-        const value = savedData[input.name];
-        const isEmpty =
-          !value ||
-          value === "" ||
-          (Array.isArray(value) && value.length === 0);
-
-        if (isEmpty) {
-          missingFields.push({
-            field: input.name,
-            step: step.RoutePath,
-            stepIndex: step.index,
-            input: input,
-          });
-        }
-      });
-    });
-
-    return missingFields;
-  };
-
-  const getNextRequiredStep = (currentUserType) => {
-    const missingFields = getMissingFields(currentUserType);
-    console.log("getNextRequiredStep");
-    if (missingFields.length === 0) return null;
-
-    const fieldsByStep = missingFields.reduce((acc, field) => {
-      if (!acc[field.step]) acc[field.step] = [];
-      acc[field.step].push(field);
-      console.log("acc", acc);
-      return acc;
-    }, {});
-
-    const stepKeys = Object.keys(fieldsByStep);
-    const sortedSteps = stepKeys.sort((a, b) => {
-      const stepA = data.find((s) => s.RoutePath === a);
-      const stepB = data.find((s) => s.RoutePath === b);
-      return stepA.index - stepB.index;
-    });
-
-    return {
-      step: sortedSteps[0],
-      fields: fieldsByStep[sortedSteps[0]],
-      isLastStep: sortedSteps.length === 1,
-    };
-  };
-
-
-  const canGoToReview = (currentUserType) => {
-    return getMissingFields(currentUserType).length === 0;
-  };
 
   const data = [
     {
@@ -447,6 +175,21 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
               ? "Micro Influencers, Content Creators"
               : "Brand Deals, Sponsorships",
         },
+        {
+          name: "hobbies",
+          label: "Hobbies",
+          placeholder: "photography, travel, food (comma separated)",
+          type: "text",
+          isArrayInput: true,
+          showIf: (userType) => userType === "influencer",
+        },
+        {
+          name: "employer",
+          label: "Employer",
+          placeholder: "Your employer's name",
+          type: "text",
+          showIf: (userType) => userType === "company",
+        },
       ],
     },
     {
@@ -472,12 +215,434 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           hasToggle: true,
           validate: (value, getValues) => value === getValues("password"),
         },
+        {
+          name: "securityKey",
+          label: "Security Key",
+          placeholder: "Enter a security key",
+          type: "text",
+          showIf: (userType) => userType === "influencer",
+        },
       ],
     },
   ];
 
+  const initialDefaultValues = data.reduce(
+    (acc, step) => {
+      step.inputs?.forEach((input) => {
+        if (input.isArrayInput) {
+          acc[input.name] = [];
+        } else {
+          acc[input.name] = "";
+        }
+      });
+      return acc;
+    },
+    { userType: "" }
+  );
+
+  const {
+    register,
+    setValue,
+    watch,
+    getValues,
+    formState: { errors },
+  } = useForm({
+    defaultValues: {
+      ...initialDefaultValues,
+      ...signupFormData,
+    },
+  });
+
+  const ProgressBar = ({ currentStep }) => {
+    const totalSteps = data.length + 2; // +1 for userselect, +1 for review
+    const progress = (currentStep / totalSteps) * 100;
+
+    const stepNames = {
+      1: "User Type",
+      ...data.reduce((acc, step, index) => {
+        acc[index + 2] = step.name;
+        return acc;
+      }, {}),
+      [totalSteps]: "Review",
+    };
+
+    return (
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white shadow-sm border-b border-gray-100">
+        <div className="relative h-2 bg-gray-100">
+          <div
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-purple-500 to-blue-500 transition-all duration-700 ease-out rounded-r-full"
+            style={{ width: `${progress}%` }}
+          />
+        </div>
+        <div className="px-4 py-3 flex justify-between items-center">
+          <span className="text-sm font-medium text-gray-700">
+            {stepNames[currentStep]}
+          </span>
+          <span className="text-sm text-gray-500">
+            {currentStep} of {totalSteps}
+          </span>
+        </div>
+      </div>
+    );
+  };
+
+  // Set editing state from location state when navigating from review
+  useEffect(() => {
+    if (editingSectionFromState) {
+      setEditingSection(editingSectionFromState);
+    }
+    if (editingFieldFromState) {
+      setEditingField(editingFieldFromState);
+    }
+  }, [editingSectionFromState, editingFieldFromState]);
+
+  useEffect(() => {
+    // Clear editing states when returning from UserSelect
+    if (state?.clearEditingStates) {
+      setEditingSection(null);
+      setEditingField(null);
+      setIsFromEditedUserType(state?.isFromEditedUserType || false);
+      // Clear the navigation state by replacing the current history entry
+      window.history.replaceState({}, "", location.pathname);
+    }
+  }, [state?.clearEditingStates]);
+
+  const getCurrentStep = () => {
+    const path = location.pathname.split("/").pop();
+    if (path === "userselect") return 1;
+    if (path === "review") return data.length + 2;
+
+    const stepData = data.find((step) => step.RoutePath === path);
+    return stepData ? stepData.index + 2 : 1;
+  };
+
+  useEffect(() => {
+    if (userType && userType !== watch("userType")) {
+      setValue("userType", userType);
+    }
+  }, [userType, watch, setValue]);
+
+  useEffect(() => {
+    const subscription = watch((value) => {
+      setSignupFormData(value);
+    });
+    return () => subscription.unsubscribe();
+  }, [watch, setSignupFormData]);
+
+  // --- Step-wise validation function with allowUnknown and context for userType ---
+  const validateStep = async (schema) => {
+    const values = getValues();
+    const { error } = schema.validate(values, {
+      abortEarly: false,
+      allowUnknown: true,
+      convert: true,
+      context: { userType: values.userType },
+    });
+
+    if (error) {
+      const formatted = error.details.reduce((acc, curr) => {
+        acc[curr.path[0]] = { message: curr.message };
+        return acc;
+      }, {});
+      setStepErrors(formatted);
+      console.log("Validation errors:", formatted);
+      return false;
+    }
+    setStepErrors({});
+    return true;
+  };
+
+  const getFieldsForUserType = (userType) => {
+    const allFields = data.reduce((acc, step) => {
+      step.inputs?.forEach((input) => {
+        if (!input.showIf || input.showIf(userType)) {
+          acc.push(input.name);
+        }
+      });
+      return acc;
+    }, []);
+
+    // Always include basic fields that might not be in data array
+    return ["userType", ...allFields];
+  };
+
+const cleanDataForUserType = (formData, userType) => {
+  const cleanedData = {};
+
+  // Get all possible fields from your data structure
+  const allPossibleFields = data.reduce((acc, step) => {
+    step.inputs?.forEach((input) => {
+      acc[input.name] = input; // Store the full input config
+    });
+    return acc;
+  }, {});
+
+  // Add userType field
+  cleanedData.userType = userType;
+
+  // Only include fields that are relevant to the current user type
+  Object.keys(formData).forEach((fieldName) => {
+    if (fieldName === "userType") return; // Already handled above
+
+    const inputConfig = allPossibleFields[fieldName];
+
+    // If field exists in our data structure
+    if (inputConfig) {
+      // Check if field should be included for this user type
+      if (!inputConfig.showIf || inputConfig.showIf(userType)) {
+        cleanedData[fieldName] = formData[fieldName];
+      }
+      // If showIf exists and returns false, exclude this field entirely
+    } else {
+      // For fields not in our data structure (like confirmPassword), include them
+      cleanedData[fieldName] = formData[fieldName];
+    }
+  });
+
+  return cleanedData;
+};
+
+  const handleUserTypeChange = (newUserType) => {
+    const currentData = getValues();
+
+    Object.keys(initialDefaultValues).forEach((key) => {
+      setValue(key, initialDefaultValues[key]);
+    });
+
+    setValue("userType", newUserType);
+    setUserType(newUserType);
+
+    const allowedFields = getFieldsForUserType(newUserType);
+
+    const cleanedData = { userType: newUserType };
+    allowedFields.forEach((field) => {
+      if (field === "userType") return;
+
+      if (currentData[field] !== undefined && currentData[field] !== "") {
+        setValue(field, currentData[field]);
+        cleanedData[field] = currentData[field];
+      } else {
+        cleanedData[field] = initialDefaultValues[field];
+      }
+    });
+
+    setSignupFormData(cleanedData);
+
+    // Force a re-render to ensure conditional fields appear
+    setTimeout(() => {
+      const updatedData = getValues();
+      setSignupFormData(updatedData);
+    }, 0);
+
+    // Navigate to first step that needs fields for this user type
+    const nextRequired = getNextRequiredStep(newUserType);
+    if (nextRequired) {
+      const requiredFieldNames = nextRequired.fields.map((f) => f.field);
+      navigate(`/auth/signup/${nextRequired.step}`, {
+        state: {
+          requiredFields: requiredFieldNames,
+          isFromEditedUserType: true,
+          fromNavigation: true,
+        },
+      });
+    } else {
+      navigate("/auth/signup/review");
+    }
+  };
+
+  useEffect(() => {
+    if (userType && userType !== watch("userType")) {
+      setValue("userType", userType);
+    }
+  }, [userType, watch, setValue]);
+  // Get missing fields for current user type
+  const getMissingFields = (currentUserType) => {
+    const savedData = getSavedData();
+    const missingFields = [];
+
+    data.forEach((step) => {
+      step.inputs?.forEach((input) => {
+        if (input.showIf && !input.showIf(currentUserType)) return;
+
+        const value = savedData[input.name];
+        const isEmpty =
+          !value ||
+          value === "" ||
+          (Array.isArray(value) && value.length === 0);
+
+        if (isEmpty) {
+          missingFields.push({
+            field: input.name,
+            step: step.RoutePath,
+            stepIndex: step.index,
+            input: input,
+          });
+        }
+      });
+    });
+
+    return missingFields;
+  };
+
+  const getNextRequiredStep = (currentUserType) => {
+    const savedData = getSavedData();
+    const missingFields = [];
+
+    data.forEach((step) => {
+      step.inputs?.forEach((input) => {
+        // Check if field applies to current user type
+        if (input.showIf && !input.showIf(currentUserType)) return;
+
+        const value = savedData[input.name];
+        const isEmpty =
+          !value ||
+          value === "" ||
+          (Array.isArray(value) && value.length === 0);
+
+        if (isEmpty) {
+          missingFields.push({
+            field: input.name,
+            step: step.RoutePath,
+            stepIndex: step.index,
+            input: input,
+            isUserTypeSpecific: !!input.showIf,
+          });
+        }
+      });
+    });
+
+    if (missingFields.length === 0) return null;
+
+    // Group by step
+    const fieldsByStep = missingFields.reduce((acc, field) => {
+      if (!acc[field.step]) acc[field.step] = [];
+      acc[field.step].push(field);
+      return acc;
+    }, {});
+
+    // Sort steps by index
+    const stepKeys = Object.keys(fieldsByStep);
+    const sortedSteps = stepKeys.sort((a, b) => {
+      const stepA = data.find((s) => s.RoutePath === a);
+      const stepB = data.find((s) => s.RoutePath === b);
+      return stepA.index - stepB.index;
+    });
+
+    return {
+      currentStep: sortedSteps[0],
+      fields: fieldsByStep[sortedSteps[0]],
+      allRemainingSteps: sortedSteps,
+      isLastStep: sortedSteps.length === 1,
+    };
+  };
+
+  const getNextStepInSequence = (currentStepRoute, userType) => {
+    const currentStepData = data.find(
+      (step) => step.RoutePath === currentStepRoute
+    );
+    if (!currentStepData) return null;
+
+    const currentIndex = currentStepData.index;
+
+    // Find the next step that has fields for this user type OR has incomplete fields
+    for (let i = currentIndex + 1; i < data.length; i++) {
+      const nextStep = data[i];
+
+      // Check if this step has any fields that apply to current user type
+      const applicableFields = nextStep.inputs?.filter(
+        (input) => !input.showIf || input.showIf(userType)
+      );
+
+      if (applicableFields && applicableFields.length > 0) {
+        return {
+          step: nextStep.RoutePath,
+          fields: applicableFields.map((input) => ({
+            field: input.name,
+            step: nextStep.RoutePath,
+            stepIndex: nextStep.index,
+            input: input,
+          })),
+          isLastStep: i === data.length - 1,
+        };
+      }
+    }
+
+    return null; // No more steps
+  };
+
+  const getNextUserTypeSpecificStep = (currentStepRoute, currentUserType) => {
+    const currentStepData = data.find(
+      (step) => step.RoutePath === currentStepRoute
+    );
+    if (!currentStepData) return null;
+
+    const currentIndex = currentStepData.index;
+
+    // Find the next step that has user-type-specific fields (showIf function)
+    for (let i = currentIndex + 1; i < data.length; i++) {
+      const nextStep = data[i];
+
+      // Look for fields with showIf that return true for current user type
+      const userTypeSpecificFields = nextStep.inputs?.filter(
+        (input) => input.showIf && input.showIf(currentUserType)
+      );
+
+      // If this step has user-type-specific fields, return it (regardless of whether fields are empty)
+      if (userTypeSpecificFields && userTypeSpecificFields.length > 0) {
+        return {
+          step: nextStep.RoutePath,
+          fields: userTypeSpecificFields.map((input) => ({
+            field: input.name,
+            step: nextStep.RoutePath,
+            stepIndex: nextStep.index,
+            input: input,
+            isUserTypeSpecific: true,
+          })),
+          isLastStep: i === data.length - 1,
+        };
+      }
+    }
+
+    return null;
+  };
+
+  // Add this helper function before the signInStepsFunct function
+  const getPreviousRequiredStep = (currentStepRoute, currentUserType) => {
+    const currentStepData = data.find(
+      (step) => step.RoutePath === currentStepRoute
+    );
+    if (!currentStepData) return null;
+
+    const currentIndex = currentStepData.index;
+
+    // Find the previous step that has fields for this user type
+    for (let i = currentIndex - 1; i >= 0; i--) {
+      const prevStep = data[i];
+
+      // Check if this step has any fields that have showIf and return true for current user type
+      const applicableFields = prevStep.inputs?.filter(
+        (input) => input.showIf && input.showIf(currentUserType)
+      );
+
+      if (applicableFields && applicableFields.length > 0) {
+        // Return the step with applicable fields (regardless of completion status)
+        return {
+          step: prevStep.RoutePath,
+          fields: applicableFields.map((input) => ({
+            field: input.name,
+            step: prevStep.RoutePath,
+            stepIndex: prevStep.index,
+            input: input,
+          })),
+        };
+      }
+    }
+
+    return null; // No previous step with applicable fields
+  };
+
   const fieldToStepMap = data.reduce((acc, step) => {
-    step.inputs.forEach((input) => {
+    step.inputs?.forEach((input) => {
       acc[input.name] = step.RoutePath;
     });
     return acc;
@@ -523,7 +688,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     });
   };
 
-
   const resetAll = () => {
     setSignupFormData({});
     setUserType("");
@@ -536,56 +700,59 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     setResetAll(() => resetAll());
   }, [setResetAll]);
 
-
   const getSavedData = () => signupFormData || {};
 
-  // Helper to check if a step is completed (use latest data)
-  const isStepCompleted = (step) => {
-    const data = getSavedData();
-    const currentUserType = data.userType;
+  const isStepCompleted = (stepRoute) => {
+    const formData = getSavedData();
+    const currentUserType = formData.userType;
 
-    switch (step) {
-      case "basic-info":
-        return !!(
-          data.userType &&
-          data.username &&
-          data.email &&
-          data.socialHandle
-        );
-      case "profile-details":
-        const profileRequiredFields = ["category", "location"];
-        if (currentUserType === "influencer") {
-          profileRequiredFields.push("followers");
+    // Find the step in data array
+    const stepData = data.find((step) => step.RoutePath === stepRoute);
+    if (!stepData) return true;
+
+    // Check all previous steps first (sequential validation)
+    const currentStepIndex = stepData.index;
+    for (let i = 0; i < currentStepIndex; i++) {
+      const prevStep = data[i];
+      const prevRequiredFields =
+        prevStep.inputs
+          ?.filter((input) => {
+            if (input.showIf && typeof input.showIf === "function") {
+              return input.showIf(currentUserType);
+            }
+            return true;
+          })
+          .map((input) => input.name) || [];
+
+      const prevStepComplete = prevRequiredFields.every((fieldName) => {
+        const value = formData[fieldName];
+        if (Array.isArray(value)) {
+          return value.length > 0;
         }
-        if (currentUserType === "company") {
-          profileRequiredFields.push("website");
-        }
-        return (
-          isStepCompleted("basic-info") &&
-          profileRequiredFields.every(
-            (field) => data[field] !== undefined && data[field] !== ""
-          )
-        );
-      case "bio-interests":
-        return (
-          isStepCompleted("profile-details") &&
-          data.bio &&
-          Array.isArray(data.interests) &&
-          data.interests.length > 0 &&
-          Array.isArray(data.lookingFor) &&
-          data.lookingFor.length > 0
-        );
-      case "security":
-        return (
-          isStepCompleted("bio-interests") &&
-          data.password &&
-          data.confirmPassword
-        );
-      case "review":
-        return isStepCompleted("security");
-      default:
-        return true;
+        return value !== undefined && value !== "" && value !== null;
+      });
+
+      if (!prevStepComplete) return false;
     }
+
+    // Then check current step
+    const requiredFields =
+      stepData.inputs
+        ?.filter((input) => {
+          if (input.showIf && typeof input.showIf === "function") {
+            return input.showIf(currentUserType);
+          }
+          return true;
+        })
+        .map((input) => input.name) || [];
+
+    return requiredFields.every((fieldName) => {
+      const value = formData[fieldName];
+      if (Array.isArray(value)) {
+        return value.length > 0;
+      }
+      return value !== undefined && value !== "" && value !== null;
+    });
   };
 
   const UserSelectStep = (
@@ -597,6 +764,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
           userType={userType}
           setUserType={handleUserTypeChange}
           setCurrentPage={(page) => navigate(`/auth/signup/${page}`)}
+          getNextRequiredStep={getNextRequiredStep}
         />
       </div>
     </>
@@ -614,28 +782,25 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     const isEditingFromReview = isFromReview || editingSection || editingField;
     const currentUserType = watch("userType");
 
-    // Get required fields for this step based on state or missing fields
     const requiredFieldsFromState = state?.requiredFields || [];
     const isLastRequiredStep = state?.isLastRequiredStep || false;
 
     const getFieldsToShow = () => {
-      // Always get the most current user type from watch() for reactivity
       const currentUserType = watch("userType");
 
+      // If editing a specific field, only show that field (and related fields like password/confirmPassword)
       if (editingField) {
-        // Special case for password editing - show both password fields
         if (editingField === "password" && stepData.RoutePath === "security") {
           return stepData.inputs?.filter(
             (input) =>
               input.name === "password" || input.name === "confirmPassword"
           );
         }
-        // Show only the specific field being edited for other cases
         return stepData.inputs?.filter((input) => input.name === editingField);
       }
 
+      // If we have specific required fields from state (coming from review or navigation)
       if (requiredFieldsFromState.length > 0) {
-        // Show only required fields from navigation state
         return stepData.inputs?.filter(
           (input) =>
             requiredFieldsFromState.includes(input.name) &&
@@ -643,8 +808,8 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         );
       }
 
+      // When coming from review (but no specific field) - show only empty fields for current user type
       if (isFromReview && !editingField) {
-        // Show empty required fields when coming from review
         return stepData.inputs?.filter((input) => {
           if (input.showIf && !input.showIf(currentUserType)) return false;
           const value = watch(input.name);
@@ -656,9 +821,47 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         });
       }
 
-      // Default: show all applicable fields for current user type
+      // When coming from edited user type - show only fields that apply to new user type AND are empty
+      if (isFromEditedUserType) {
+        return stepData.inputs?.filter((input) => {
+          // Only show fields that have showIf AND it returns true for current userType
+          return input.showIf && input.showIf(currentUserType);
+        });
+      }
+
+      // Default case - show ALL applicable fields for current user type
+      // BUT if we're in a navigation flow where we should only show required fields,
+      // we need to check if this step has incomplete fields
+      const hasIncompleteFields = stepData.inputs?.some((input) => {
+        if (input.showIf && !input.showIf(currentUserType)) return false;
+        const value = watch(input.name);
+        return (
+          !value || value === "" || (Array.isArray(value) && value.length === 0)
+        );
+      });
+
+      // If coming from a navigation flow and there are incomplete fields, show only those
+      if (hasIncompleteFields && (isFromReview || state?.fromNavigation)) {
+        return stepData.inputs?.filter((input) => {
+          if (input.showIf && !input.showIf(currentUserType)) return false;
+          const value = watch(input.name);
+          return (
+            !value ||
+            value === "" ||
+            (Array.isArray(value) && value.length === 0)
+          );
+        });
+      }
+
+      if (isFromEditedUserType) {
+        return stepData.inputs?.filter((input) => {
+          // Only show fields that have showIf AND it returns true for current userType
+          return input.showIf && input.showIf(currentUserType);
+        });
+      }
+
+      // Final fallback - show all applicable fields for current user type
       return stepData.inputs?.filter((input) => {
-        // Always evaluate showIf with the current user type
         if (typeof input.showIf === "function") {
           return input.showIf(currentUserType);
         }
@@ -684,7 +887,17 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         }
       });
 
-      const inputNames = stepData.inputs.map((i) => i.name);
+      // FIX: Filter input names based on current user type
+      const currentUserType = watch("userType");
+      const inputNames = stepData.inputs
+        .filter((input) => {
+          if (input.showIf && typeof input.showIf === "function") {
+            return input.showIf(currentUserType);
+          }
+          return true;
+        })
+        .map((i) => i.name);
+
       const dynamicSchema = createStepSchema(inputNames);
       const isValid = await validateStep(dynamicSchema);
 
@@ -697,29 +910,126 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         setEditingSection(null);
         setEditingField(null);
         navigate("/auth/signup/review");
-      } else if (isLastRequiredStep || canGoToReview(currentUserType)) {
-        navigate("/auth/signup/review");
       } else {
-        const nextRequired = getNextRequiredStep(currentUserType);
-        if (nextRequired) {
-          navigate(`/auth/signup/${nextRequired.step}`, {
-            state: {
-              requiredFields: nextRequired.fields.map((f) => f.field),
-              isLastRequiredStep: nextRequired.isLastStep,
-            },
-          });
-        } else if (nextStep) {
-          navigate(`/auth/signup/${nextStep.RoutePath}`);
+        const currentUserType = watch("userType");
+
+        // If coming from edited user type, prioritize user-type-specific fields
+        if (isFromEditedUserType) {
+          const nextUserTypeStep = getNextUserTypeSpecificStep(
+            route,
+            currentUserType
+          );
+
+          console.log("nextUserTypeStep", nextUserTypeStep);
+
+          if (nextUserTypeStep) {
+            const requiredFieldNames = nextUserTypeStep.fields.map(
+              (f) => f.field
+            );
+            navigate(`/auth/signup/${nextUserTypeStep.step}`, {
+              state: {
+                requiredFields: requiredFieldNames,
+                isFromEditedUserType: true,
+                fromNavigation: true,
+                isLastRequiredStep: nextUserTypeStep.isLastStep,
+              },
+            });
+            return;
+          } else {
+            // No more user-type-specific steps, check for any other missing fields
+            const nextRequired = getNextRequiredStep(currentUserType);
+
+            if (nextRequired) {
+              const requiredFieldNames = nextRequired.fields.map(
+                (f) => f.field
+              );
+              navigate(`/auth/signup/${nextRequired.currentStep}`, {
+                state: {
+                  requiredFields: requiredFieldNames,
+                  isFromEditedUserType: true,
+                  fromNavigation: true,
+                  isLastRequiredStep: nextRequired.isLastStep,
+                },
+              });
+              return;
+            }
+          }
+        } else if (state?.fromNavigation) {
+          // If coming from navigation flow, continue with required steps
+          const nextRequired = getNextRequiredStep(currentUserType);
+
+          if (nextRequired) {
+            const requiredFieldNames = nextRequired.fields.map((f) => f.field);
+            navigate(`/auth/signup/${nextRequired.currentStep}`, {
+              state: {
+                requiredFields: requiredFieldNames,
+                isFromEditedUserType: isFromEditedUserType ? true : false,
+                fromNavigation: true,
+                isLastRequiredStep: nextRequired.isLastStep,
+              },
+            });
+            return;
+          }
         } else {
-          navigate("/auth/signup/review");
+          // Normal sequential flow - go to next step in sequence
+          const nextStep = getNextStepInSequence(route, currentUserType);
+
+          if (nextStep) {
+            navigate(`/auth/signup/${nextStep.step}`, {
+              state: {
+                fromNavigation: false,
+                isSequentialFlow: true,
+              },
+            });
+            return;
+          }
         }
+
+        // If no next step, go to review
+        setIsFromEditedUserType(false);
+        navigate("/auth/signup/review");
       }
     };
 
+    // Update the getButtonText function to be more accurate
     const getButtonText = () => {
-      if (isEditingFromReview) return "Save & Return";
-      if (isLastRequiredStep || canGoToReview(currentUserType))
+      if (isEditingFromReview) {
+        return "Save & Return";
+      }
+
+      const currentUserType = watch("userType");
+
+      // If coming from edited user type, check for next user-type-specific step first
+      if (isFromEditedUserType) {
+        const nextUserTypeStep = getNextUserTypeSpecificStep(
+          route,
+          currentUserType
+        );
+        if (nextUserTypeStep) {
+          return "Continue";
+        }
+
+        // Then check for any other required steps
+        const nextRequired = getNextRequiredStep(currentUserType);
+        if (nextRequired) {
+          return "Continue";
+        }
+
         return "Go to Review";
+      }
+
+      // For navigation flow
+      if (state?.fromNavigation) {
+        if (isLastRequiredStep) return "Go to Review";
+        return "Continue";
+      }
+
+      // For sequential flow, check if there's a next step
+      if (!state?.fromNavigation && !isFromEditedUserType) {
+        const nextStep = getNextStepInSequence(route, currentUserType);
+        return nextStep ? "Continue" : "Go to Review";
+      }
+
       return "Continue";
     };
 
@@ -730,7 +1040,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       return "Back";
     };
 
-    // Replace the existing input filtering in the JSX with:
     const fieldsToShow = getFieldsToShow();
 
     return (
@@ -805,16 +1114,50 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                 className="flex-1 px-6 py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold rounded-xl transition-colors flex items-center justify-center space-x-2"
                 onClick={() => {
                   if (isEditingFromReview) {
-                    // If editing from review, go back to review without saving
                     setEditingSection(null);
                     setEditingField(null);
                     navigate("/auth/signup/review");
                   } else {
-                    // Normal back navigation
-                    if (prevStep) {
-                      navigate(`/auth/signup/${prevStep.RoutePath}`);
+                    const currentUserType = watch("userType");
+
+                    // UPDATED LOGIC: If coming from edited user type, find previous step with user-type-specific fields
+                    if (isFromEditedUserType || state?.fromNavigation) {
+                      const prevRequired = getPreviousRequiredStep(
+                        route,
+                        currentUserType
+                      );
+
+                      if (prevRequired) {
+                        // Navigate to previous step with incomplete user-type-specific fields
+                        const requiredFieldNames = prevRequired.fields.map(
+                          (f) => f.field
+                        );
+                        navigate(`/auth/signup/${prevRequired.step}`, {
+                          state: {
+                            isFromEditedUserType: true,
+                            fromNavigation: true,
+                            requiredFields: requiredFieldNames,
+                          },
+                        });
+                      } else {
+                        // No previous step with incomplete fields, go back to user select
+                        setEditingSection("account");
+                        setEditingField("userType");
+                        navigate("/auth/signup/userselect", {
+                          state: {
+                            editingSection: "account",
+                            editingField: "userType",
+                            fromReview: true,
+                          },
+                        });
+                      }
                     } else {
-                      navigate("/auth/signup/userselect");
+                      // Normal sequential flow - go to previous step
+                      if (prevStep) {
+                        navigate(`/auth/signup/${prevStep.RoutePath}`);
+                      } else {
+                        navigate("/auth/signup/userselect");
+                      }
                     }
                   }
                 }}
@@ -1199,15 +1542,41 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
             </button>
             <button
               onClick={async () => {
-                const isValid = await validateStep(signUpSchema);
+                // Clean the form data to only include fields relevant to current user type
+                const currentUserType = watch("userType");
+                const cleanedFormData = cleanDataForUserType(
+                  getValues(),
+                  currentUserType
+                );
+
+                // Create a schema with only the fields that apply to current user type
+                const relevantFields = getFieldsForUserType(currentUserType);
+                const reviewSchema = createStepSchema(relevantFields);
+
+                // Temporarily set the cleaned data for validation
+                const originalData = getValues();
+                Object.keys(cleanedFormData).forEach((key) => {
+                  setValue(key, cleanedFormData[key]);
+                });
+
+                const isValid = await validateStep(reviewSchema);
+
                 if (!isValid) {
                   console.log(
                     "Create Account (ReviewStep) errors:",
                     stepErrors
                   );
+                  // Restore original data if validation fails
+                  Object.keys(originalData).forEach((key) => {
+                    setValue(key, originalData[key]);
+                  });
+                  return;
                 }
+
                 if (isValid) {
-                  console.log("Form submitted:", getSavedData());
+                  console.log("Form submitted:", cleanedFormData);
+                  // Update the stored form data with cleaned version
+                  setSignupFormData(cleanedFormData);
                   navigate("/auth/login", { state: { fromSignUp: true } });
                 }
               }}
@@ -1257,7 +1626,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
             path={step.RoutePath}
             element={
               prevStep ? (
-                !isStepCompleted(`${prevStep.RoutePath}`) ? (
+                !isStepCompleted(prevStep.RoutePath) ? (
                   <Navigate to={`/auth/signup/${prevStep.RoutePath}`} replace />
                 ) : userType ? (
                   signInStepsFunct(data, step.RoutePath)
@@ -1276,8 +1645,11 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
       <Route
         path="review"
         element={
-          !isStepCompleted("security") ? (
-            <Navigate to="/auth/signup/security" replace />
+          !isStepCompleted(data[data.length - 1].RoutePath) ? (
+            <Navigate
+              to={`/auth/signup/${data[data.length - 1].RoutePath}`}
+              replace
+            />
           ) : userType ? (
             ReviewStep
           ) : (

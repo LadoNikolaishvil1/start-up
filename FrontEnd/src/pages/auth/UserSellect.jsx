@@ -9,6 +9,7 @@ const UserSelect = ({
   setUserType,
   setCurrentPage,
   getNextRequiredStep,
+  getNextUserTypeSpecificStep,
 }) => {
   const { handleSubmit } = useForm();
   const location = useLocation();
@@ -47,26 +48,26 @@ const UserSelect = ({
 
       if (isEditingFromReview) {
         // Find the next incomplete step instead of going to review
-        const nextStep = getNextRequiredStep(tempUserType);
-        if (nextStep) {
-          // Get required fields for the next step
-          const requiredFieldNames = nextStep.fields.map((f) => f.field);
-
-          navigate(`/auth/signup/${nextStep.currentStep}`, {
+        const userTypeSteps = getNextUserTypeSpecificStep(
+          undefined,
+          tempUserType
+        );
+        if (userTypeSteps && userTypeSteps.length > 0) {
+          const firstStep = userTypeSteps[0];
+          const requiredFieldNames = firstStep.fields.map((f) => f.field);
+          navigate(`/auth/signup/${firstStep.step}`, {
             state: {
               clearEditingStates: true,
               isFromEditedUserType: true,
               fromNavigation: true,
               requiredFields: requiredFieldNames,
-              isLastRequiredStep: nextStep.isLastStep,
+              isLastRequiredStep: firstStep.isLastStep,
             },
           });
         } else {
-          // If no more steps needed, go to review
+          // If no user type specific steps, go to review
           navigate("/auth/signup/review", {
-            state: {
-              clearEditingStates: true,
-            },
+            state: { clearEditingStates: true },
           });
         }
       } else {
@@ -120,7 +121,7 @@ const UserSelect = ({
   };
 
   const getContinueButtonText = () => {
-    if (isEditingFromReview) return "Save & Return";
+    if (isEditingFromReview) return "Continue";
     if (isFromEditedUserType || fromNavigation) return "Continue";
     return `Continue as ${
       tempUserType

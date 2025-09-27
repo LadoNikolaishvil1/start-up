@@ -114,7 +114,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
         {
           name: "website",
           label: "Website",
-          placeholder: "not required",
+          placeholder: "Optional",
           icon: (
             <Globe className="absolute left-3 top-3.5 w-5 h-5 text-gray-400" />
           ),
@@ -366,41 +366,41 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
     return ["userType", ...allFields];
   };
 
-const cleanDataForUserType = (formData, userType) => {
-  const cleanedData = {};
+  const cleanDataForUserType = (formData, userType) => {
+    const cleanedData = {};
 
-  // Get all possible fields from your data structure
-  const allPossibleFields = data.reduce((acc, step) => {
-    step.inputs?.forEach((input) => {
-      acc[input.name] = input; // Store the full input config
-    });
-    return acc;
-  }, {});
+    // Get all possible fields from your data structure
+    const allPossibleFields = data.reduce((acc, step) => {
+      step.inputs?.forEach((input) => {
+        acc[input.name] = input; // Store the full input config
+      });
+      return acc;
+    }, {});
 
-  // Add userType field
-  cleanedData.userType = userType;
+    // Add userType field
+    cleanedData.userType = userType;
 
-  // Only include fields that are relevant to the current user type
-  Object.keys(formData).forEach((fieldName) => {
-    if (fieldName === "userType") return; // Already handled above
+    // Only include fields that are relevant to the current user type
+    Object.keys(formData).forEach((fieldName) => {
+      if (fieldName === "userType") return; // Already handled above
 
-    const inputConfig = allPossibleFields[fieldName];
+      const inputConfig = allPossibleFields[fieldName];
 
-    // If field exists in our data structure
-    if (inputConfig) {
-      // Check if field should be included for this user type
-      if (!inputConfig.showIf || inputConfig.showIf(userType)) {
+      // If field exists in our data structure
+      if (inputConfig) {
+        // Check if field should be included for this user type
+        if (!inputConfig.showIf || inputConfig.showIf(userType)) {
+          cleanedData[fieldName] = formData[fieldName];
+        }
+        // If showIf exists and returns false, exclude this field entirely
+      } else {
+        // For fields not in our data structure (like confirmPassword), include them
         cleanedData[fieldName] = formData[fieldName];
       }
-      // If showIf exists and returns false, exclude this field entirely
-    } else {
-      // For fields not in our data structure (like confirmPassword), include them
-      cleanedData[fieldName] = formData[fieldName];
-    }
-  });
+    });
 
-  return cleanedData;
-};
+    return cleanedData;
+  };
 
   const handleUserTypeChange = (newUserType) => {
     const currentData = getValues();
@@ -571,6 +571,36 @@ const cleanDataForUserType = (formData, userType) => {
   };
 
   const getNextUserTypeSpecificStep = (currentStepRoute, currentUserType) => {
+    // If no arguments, return all user-type-specific steps for the current user type
+    if (!currentStepRoute || !currentUserType) {
+      // You need to know the userType to filter steps
+      // If you have a global or state userType, use it here
+      const userType =
+        currentUserType ||
+        (typeof watch === "function" ? watch("userType") : undefined);
+      if (!userType) return [];
+      const filteredData = data
+        .filter((step) =>
+          step.inputs?.some((input) => input.showIf && input.showIf(userType))
+        )
+        .map((step) => ({
+          step: step.RoutePath,
+          fields: step.inputs
+            .filter((input) => input.showIf && input.showIf(userType))
+            .map((input) => ({
+              field: input.name,
+              step: step.RoutePath,
+              stepIndex: step.index,
+              input: input,
+              isUserTypeSpecific: true,
+            })),
+          isLastStep: step.index === data.length - 1,
+        }));
+      console.log("filteredData", filteredData);
+      return filteredData;
+    }
+
+    // ...existing code for single next step...
     const currentStepData = data.find(
       (step) => step.RoutePath === currentStepRoute
     );
@@ -578,16 +608,11 @@ const cleanDataForUserType = (formData, userType) => {
 
     const currentIndex = currentStepData.index;
 
-    // Find the next step that has user-type-specific fields (showIf function)
     for (let i = currentIndex + 1; i < data.length; i++) {
       const nextStep = data[i];
-
-      // Look for fields with showIf that return true for current user type
       const userTypeSpecificFields = nextStep.inputs?.filter(
         (input) => input.showIf && input.showIf(currentUserType)
       );
-
-      // If this step has user-type-specific fields, return it (regardless of whether fields are empty)
       if (userTypeSpecificFields && userTypeSpecificFields.length > 0) {
         return {
           step: nextStep.RoutePath,
@@ -602,7 +627,6 @@ const cleanDataForUserType = (formData, userType) => {
         };
       }
     }
-
     return null;
   };
 
@@ -710,35 +734,11 @@ const cleanDataForUserType = (formData, userType) => {
     const stepData = data.find((step) => step.RoutePath === stepRoute);
     if (!stepData) return true;
 
-    // Check all previous steps first (sequential validation)
-    const currentStepIndex = stepData.index;
-    for (let i = 0; i < currentStepIndex; i++) {
-      const prevStep = data[i];
-      const prevRequiredFields =
-        prevStep.inputs
-          ?.filter((input) => {
-            if (input.showIf && typeof input.showIf === "function") {
-              return input.showIf(currentUserType);
-            }
-            return true;
-          })
-          .map((input) => input.name) || [];
-
-      const prevStepComplete = prevRequiredFields.every((fieldName) => {
-        const value = formData[fieldName];
-        if (Array.isArray(value)) {
-          return value.length > 0;
-        }
-        return value !== undefined && value !== "" && value !== null;
-      });
-
-      if (!prevStepComplete) return false;
-    }
-
-    // Then check current step
+    // Get only the required fields for this step and userType
     const requiredFields =
       stepData.inputs
         ?.filter((input) => {
+          // Only include fields that are shown for this userType
           if (input.showIf && typeof input.showIf === "function") {
             return input.showIf(currentUserType);
           }
@@ -746,13 +746,18 @@ const cleanDataForUserType = (formData, userType) => {
         })
         .map((input) => input.name) || [];
 
-    return requiredFields.every((fieldName) => {
-      const value = formData[fieldName];
-      if (Array.isArray(value)) {
-        return value.length > 0;
-      }
-      return value !== undefined && value !== "" && value !== null;
+    // Create a Joi schema for just these fields
+    const stepSchema = createStepSchema(requiredFields);
+    // Validate only the current step's fields
+    const { error } = stepSchema.validate(formData, {
+      abortEarly: false,
+      allowUnknown: true,
+      context: { userType: currentUserType },
     });
+
+    // If there are errors, step is not completed
+    if (error) return false;
+    return true;
   };
 
   const UserSelectStep = (
@@ -765,6 +770,7 @@ const cleanDataForUserType = (formData, userType) => {
           setUserType={handleUserTypeChange}
           setCurrentPage={(page) => navigate(`/auth/signup/${page}`)}
           getNextRequiredStep={getNextRequiredStep}
+          getNextUserTypeSpecificStep={getNextUserTypeSpecificStep}
         />
       </div>
     </>
@@ -901,6 +907,8 @@ const cleanDataForUserType = (formData, userType) => {
       const dynamicSchema = createStepSchema(inputNames);
       const isValid = await validateStep(dynamicSchema);
 
+      console.log("is valid:", isValid);
+
       if (!isValid) {
         console.log(`Continue (${stepData.elementName}) errors:`, stepErrors);
         return;
@@ -920,7 +928,6 @@ const cleanDataForUserType = (formData, userType) => {
             currentUserType
           );
 
-          console.log("nextUserTypeStep", nextUserTypeStep);
 
           if (nextUserTypeStep) {
             const requiredFieldNames = nextUserTypeStep.fields.map(
@@ -939,13 +946,39 @@ const cleanDataForUserType = (formData, userType) => {
             // No more user-type-specific steps, check for any other missing fields
             const nextRequired = getNextRequiredStep(currentUserType);
 
+            console.log("nextRequired", nextRequired);
+
             if (nextRequired) {
               const requiredFieldNames = nextRequired.fields.map(
                 (f) => f.field
               );
+
+              // Create a Joi schema for these fields
+              const dynamicSchema = createStepSchema(requiredFieldNames);
+
+              // Validate an empty object to get required fields
+              const { error } = dynamicSchema.validate(
+                {},
+                { abortEarly: false, context: { userType: currentUserType } }
+              );
+
+              // Get only required fields from error details
+              const actuallyRequiredFields = error
+                ? error.details
+                    .filter((detail) => detail.type === "any.required")
+                    .map((detail) => detail.path[0])
+                : [];
+
+              console.log("actuallyRequiredFields", actuallyRequiredFields);
+
+              if(actuallyRequiredFields.length === 0) {
+                navigate("/auth/signup/review");
+                return;
+              }
+
               navigate(`/auth/signup/${nextRequired.currentStep}`, {
                 state: {
-                  requiredFields: requiredFieldNames,
+                  requiredFields: actuallyRequiredFields,
                   isFromEditedUserType: true,
                   fromNavigation: true,
                   isLastRequiredStep: nextRequired.isLastStep,

@@ -68,8 +68,9 @@ const fieldSchemas = {
 
   website: Joi.alternatives().conditional(Joi.ref("$userType"), {
     is: "company",
-    then: Joi.string().required().uri().allow("").messages({
+    then: Joi.string().uri().allow("").messages({
       "string.uri": "Website must be a valid URL (e.g., https://example.com).",
+      // "any.required": "Website is required.",
     }),
     otherwise: Joi.any().strip(), // Remove this field for non-company users
   }),

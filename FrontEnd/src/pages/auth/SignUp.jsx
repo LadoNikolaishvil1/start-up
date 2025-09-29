@@ -1606,9 +1606,32 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
                 }
 
                 if (isValid) {
-                  console.log("Form submitted:", cleanedFormData);
-                  // Update the stored form data with cleaned version
-                  setSignupFormData(cleanedFormData);
+                  // Remove confirmPassword and add createdAt
+                  const { confirmPassword, ...dataToPost } = cleanedFormData;
+
+                  const finalData = {
+                    ...dataToPost,
+                    id: Date.now(), // still giving each user a unique ID
+                    createdAt: new Date().toISOString(),
+                  };
+
+                  fetch("http://localhost:3000/api/users", {
+                    method: "POST",
+                    headers: {
+                      "Content-Type": "application/json",
+                    },
+                    body: JSON.stringify(finalData),
+                  })
+                    .then((res) => {
+                      if (res.ok && res.headers.get("Content-Length") !== "0") {
+                        return res.json();
+                      }
+                      return null;
+                    })
+                    .catch((err) => console.error("POST failed:", err));
+
+                  console.log("Form submitted:", finalData);
+                  
                   navigate("/auth/login", { state: { fromSignUp: true } });
                 }
               }}

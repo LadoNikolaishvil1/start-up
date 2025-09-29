@@ -25,12 +25,25 @@ const Login = ({ colors, setCurrentPage, resetAll }) => {
   React.useEffect(() => {
     if (location.state?.fromSignUp && typeof resetAll === "function") {
       resetAll();
-      navigate("/home");
     }
   }, [location]);
 
   const onSubmit = (data) => {
-    alert("Login: " + JSON.stringify(data));
+    fetch("http://localhost:3000/api/users")
+      .then((res) => res.json())
+      .then((users) => {
+        const user = users.find(
+          (user) => user.email === data.email && user.password === data.password
+        );
+        if(user){
+          alert("Login successful! Welcome, " + user.username);
+        }else{
+          alert("Login failed: Invalid email or password.");
+        }
+      })
+      .catch((error) => {
+        console.error("Error fetching users:", error);
+      });
   };
 
   return (

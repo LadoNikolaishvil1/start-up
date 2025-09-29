@@ -34,7 +34,7 @@ import {
   createStepSchema,
 } from "../../validations/SignUp.validations";
 import { useLocalStorage } from "usehooks-ts";
-import ErrorPage from "../errorPage.jsx";
+import ErrorPage from "../ErrorPage.jsx";
 
 const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
   const navigate = useNavigate();
@@ -928,7 +928,6 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
             currentUserType
           );
 
-
           if (nextUserTypeStep) {
             const requiredFieldNames = nextUserTypeStep.fields.map(
               (f) => f.field
@@ -971,7 +970,7 @@ const SignUp = ({ colors = {}, userType, setUserType, setResetAll }) => {
 
               console.log("actuallyRequiredFields", actuallyRequiredFields);
 
-              if(actuallyRequiredFields.length === 0) {
+              if (actuallyRequiredFields.length === 0) {
                 navigate("/auth/signup/review");
                 return;
               }

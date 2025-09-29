@@ -4,7 +4,7 @@ import { useTheme } from "../../hooks/GetTheme.jsx";
 import Login from "./LogIn.jsx";
 import SignUp from "./SignUp.jsx";
 import { useLocalStorage } from "usehooks-ts";
-import ErrorPage from "../errorPage.jsx";
+import ErrorPage from "../ErrorPage.jsx";
 
 const AuthPages = () => {
   const [userType, setUserType] = useLocalStorage("userType", "");
